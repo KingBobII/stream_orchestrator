@@ -1,8 +1,9 @@
+# config/routes.rb
 Rails.application.routes.draw do
-  # auth
-  post "/login", to: "sessions#create"
+  devise_for :users, controllers: { sessions: "users/sessions" }
 
-  # users
-  resources :users, only: [:create, :index, :show, :update, :destroy]
-
+  # existing routes...
+  resources :users, only: [:index, :show, :create, :update, :destroy]
+  resources :youtube_channels
+  # ... other routes
 end
