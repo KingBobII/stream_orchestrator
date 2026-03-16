@@ -51,6 +51,7 @@ gem "sidekiq"
 gem "bcrypt", "~> 3.1.18"
 gem "jwt"
 gem 'devise'
+gem 'devise-jwt'
 
 group :development, :test do
   # See https://guides.rubyonrails.org/debugging_rails_applications.html#debugging-with-the-debug-gem
