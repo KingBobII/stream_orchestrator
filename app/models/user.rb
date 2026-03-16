@@ -1,14 +1,17 @@
+# app/models/user.rb
 class User < ApplicationRecord
-  has_secure_password
+  # Devise modules.
+  # Keep :registerable if you want web sign-up; remove it to make sign-ups admin-only.
+  devise :database_authenticatable, :registerable,
+         :recoverable, :rememberable, :validatable, :trackable,
+         :jwt_authenticatable, jwt_revocation_strategy: JwtDenylist
 
-  # roles: admin, stream_operator, production_operator
+  # roles
   ROLES = %w[admin stream_operator production_operator].freeze
 
-  validates :email, presence: true, uniqueness: true, format: URI::MailTo::EMAIL_REGEXP
   validates :role, presence: true, inclusion: { in: ROLES }
-  validates :password, length: { minimum: 6 }, if: -> { new_record? || !password.nil? }
 
-  # simple JWT helper for issuing tokens
+  # Keep helper if needed elsewhere
   def generate_jwt(exp = 24.hours.from_now)
     payload = { user_id: id, exp: exp.to_i }
     JWT.encode(payload, Rails.application.credentials.secret_key_base)
