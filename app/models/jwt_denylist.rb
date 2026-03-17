@@ -2,5 +2,6 @@
 class JwtDenylist < ApplicationRecord
   include Devise::JWT::RevocationStrategies::Denylist
 
-  self.table_name = "jwt_denylist"
+  # Rails will map JwtDenylist -> jwt_denylists by default,
+  # so no need to set self.table_name unless you have a nonstandard name.
 end
