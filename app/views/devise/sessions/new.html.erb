@@ -1,0 +1,75 @@
+<!-- app/views/devise/sessions/new.html.erb -->
+<div class="min-h-screen flex w-full bg-gray-900">
+  <!-- LEFT: form -->
+  <div class="flex-1 flex items-center justify-center px-6 py-12">
+    <div class="w-full max-w-md">
+      <div class="text-center">
+       <!-- <img
+          src="https://res.cloudinary.com/dkby5x3px/image/upload/v1773747185/Gov_Logo_jlnbux.png"
+          alt="Gov Logo"
+          class="mx-auto h-14 w-auto"
+        />-->
+        <h2 class="mt-8 text-center text-3xl font-extrabold text-white">Sign in to your account</h2>
+        <p class="mt-2 text-center text-sm text-gray-300">Sign in to manage streams and schedules</p>
+      </div>
+
+      <div class="mt-8 bg-gray-800/30 p-8 rounded-lg border border-gray-700">
+        <%= form_for(resource, as: resource_name, url: session_path(resource_name)) do |f| %>
+          <div class="space-y-6">
+            <!-- Email -->
+            <div>
+              <%= f.label :email, class: "block text-sm font-medium text-gray-200" %>
+              <div class="mt-2">
+                <%= f.email_field :email, required: true, autofocus: true,
+                      class: "block w-full rounded-md bg-gray-800 px-4 py-3 text-white placeholder-gray-400 border border-gray-700 focus:ring-2 focus:ring-indigo-500 focus:border-indigo-500" %>
+              </div>
+            </div>
+
+            <!-- Password -->
+            <div>
+              <div class="flex items-center justify-between">
+                <%= f.label :password, class: "block text-sm font-medium text-gray-200" %>
+                <%= link_to "Forgot password?", new_password_path(resource_name),
+                       class: "text-sm text-indigo-300 hover:text-indigo-200" %>
+              </div>
+
+              <div class="mt-2">
+                <%= f.password_field :password, required: true,
+                      class: "block w-full rounded-md bg-gray-800 px-4 py-3 text-white placeholder-gray-400 border border-gray-700 focus:ring-2 focus:ring-indigo-500 focus:border-indigo-500" %>
+              </div>
+            </div>
+
+            <!-- Remember -->
+            <div class="flex items-center">
+              <%= f.check_box :remember_me, class: "h-4 w-4 text-indigo-600 rounded border-gray-600" %>
+              <%= f.label :remember_me, class: "ml-2 text-sm text-gray-300" %>
+            </div>
+
+            <!-- Submit -->
+            <div>
+              <%= f.submit "Sign in",
+                    class: "w-full inline-flex items-center justify-center rounded-md bg-indigo-600 px-4 py-3 text-white font-semibold hover:bg-indigo-500 focus:outline-none focus:ring-2 focus:ring-indigo-400" %>
+            </div>
+          </div>
+        <% end %>
+
+        <p class="mt-6 text-center text-sm text-gray-400">
+          Not a member?
+          <%= link_to "Sign up", new_registration_path(resource_name), class: "text-indigo-300 hover:text-indigo-200 font-medium" %>
+        </p>
+      </div>
+    </div>
+  </div>
+
+  <!-- RIGHT: centered logo (same bg as left) -->
+  <div class="flex-1 flex items-center justify-center px-6 py-12">
+    <div class="w-full max-w-lg flex items-center justify-center">
+      <!-- Put only the logo here: no extra text -->
+      <img
+        src="https://res.cloudinary.com/dkby5x3px/image/upload/v1773747185/Gov_Logo_jlnbux.png"
+        alt="Gov Logo"
+        class="max-h-56 w-auto"
+      />
+    </div>
+  </div>
+</div>

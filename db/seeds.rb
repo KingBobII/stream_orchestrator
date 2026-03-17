@@ -8,6 +8,7 @@
 #     MovieGenre.find_or_create_by!(name: genre_name)
 #   end
 # Destroy old users to avoid duplicates (optional, careful in production!)
+# db/seeds.rb
 User.destroy_all
 
 puts "Creating default users..."
@@ -19,14 +20,14 @@ users = [
 ]
 
 users.each do |user_attrs|
-  User.create!(
+  user = User.create!(
     email: user_attrs[:email],
     name: user_attrs[:name],
     role: user_attrs[:role],
     password: user_attrs[:password],
     password_confirmation: user_attrs[:password]
   )
-  puts "Created user: #{user_attrs[:email]} (#{user_attrs[:role]})"
+  puts "Created user: #{user.email} (#{user.role})"
 end
 
 puts "✅ All default users created!"

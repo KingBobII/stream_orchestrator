@@ -1,15 +1,17 @@
 <!DOCTYPE html>
-<html>
+<html class="h-full bg-gray-900" lang="en">
   <head>
-    <title>StreamOrchestrator</title>
-    <meta name="viewport" content="width=device-width,initial-scale=1">
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width,initial-scale=1" />
+    <title><%= content_for?(:title) ? yield(:title) : "Stream Orchestrator" %></title>
     <%= csrf_meta_tags %>
     <%= csp_meta_tag %>
 
-    <%= stylesheet_link_tag "application", "data-turbo-track": "reload" %>
+    <%= stylesheet_link_tag "tailwind", "data-turbo-track": "reload" %>
+    <%#= javascript_include_tag "application", "data-turbo-track": "reload", defer: true %>
   </head>
 
-  <body>
+  <body class="h-full">
     <%= yield %>
   </body>
 </html>
