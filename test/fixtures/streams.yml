@@ -1,0 +1,21 @@
+# Read about fixtures at https://api.rubyonrails.org/classes/ActiveRecord/FixtureSet.html
+
+one:
+  title: MyString
+  description: MyText
+  status: MyString
+  visibility: MyString
+  scheduled_at: 2026-03-18 11:35:33
+  youtube_channel: one
+  external_video_id: MyString
+  thumbnails: 
+
+two:
+  title: MyString
+  description: MyText
+  status: MyString
+  visibility: MyString
+  scheduled_at: 2026-03-18 11:35:33
+  youtube_channel: two
+  external_video_id: MyString
+  thumbnails: 

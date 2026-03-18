@@ -30,11 +30,12 @@ module Users
       end
     end
 
-    def respond_to_on_destroy
+    # ✅ FIXED METHOD SIGNATURE
+    def respond_to_on_destroy(resource)
       if request.format.json?
         render json: { message: 'Logged out successfully' }, status: :ok
       else
-        redirect_to root_path, notice: 'Logged out successfully'
+        redirect_to new_user_session_path, notice: 'Logged out successfully'
       end
     end
   end

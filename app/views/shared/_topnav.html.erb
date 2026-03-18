@@ -1,0 +1,96 @@
+<div>
+  <nav class="bg-gray-800">
+    <div class="mx-auto max-w-7xl px-4 sm:px-6 lg:px-8">
+      <div class="flex h-16 items-center justify-between">
+
+        <!-- LEFT SIDE -->
+        <div class="flex items-center">
+          <div class="shrink-0">
+            <%= image_tag "https://res.cloudinary.com/dkby5x3px/image/upload/v1773747185/Gov_Logo_jlnbux.png", alt: "App", class: "h-8 w-8" %>
+          </div>
+
+          <div class="hidden md:block">
+            <div class="ml-10 flex items-baseline space-x-4">
+              <%= link_to "Dashboard", request.path, class: "rounded-md bg-gray-900 px-3 py-2 text-sm font-medium text-white" %>
+
+              <% if current_user&.admin? %>
+                <%= link_to "Users", admin_users_path, class: "rounded-md px-3 py-2 text-sm font-medium text-gray-300 hover:text-white" %>
+                <%= link_to "Channels", admin_youtube_channels_path, class: "rounded-md px-3 py-2 text-sm font-medium text-gray-300 hover:text-white" %>
+                <%= link_to "Streams", admin_streams_path, class: "rounded-md px-3 py-2 text-sm font-medium text-gray-300 hover:text-white" %>
+
+              <% elsif current_user&.stream_operator? %>
+                <%= link_to "My Channels", stream_operator_youtube_channels_path, class: "rounded-md px-3 py-2 text-sm font-medium text-gray-300 hover:text-white" %>
+                <%= link_to "Schedule", stream_operator_streams_path, class: "rounded-md px-3 py-2 text-sm font-medium text-gray-300 hover:text-white" %>
+
+              <% elsif current_user&.production_operator? %>
+                <%= link_to "Streams", production_operator_streams_path, class: "rounded-md px-3 py-2 text-sm font-medium text-gray-300 hover:text-white" %>
+              <% end %>
+            </div>
+          </div>
+        </div>
+
+        <!-- RIGHT SIDE -->
+        <div class="hidden md:block">
+          <div class="ml-4 flex items-center md:ml-6 space-x-4">
+
+            <!-- SIGN OUT -->
+            <%= button_to "Sign out",
+                          destroy_user_session_path,
+                          method: :delete,
+                          class: "rounded-md px-3 py-2 text-sm font-medium text-gray-300 hover:text-white bg-transparent border-none cursor-pointer",
+                          form: { class: "inline" } %>
+
+            <!-- NOTIFICATIONS -->
+            <button type="button" class="relative rounded-full p-1 text-gray-400 hover:text-white" title="Notifications">
+              <span class="sr-only">View notifications</span>
+              <svg class="h-6 w-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.5"
+                      d="M14.857 17.082A23.848 23.848 0 0 0 20.311 15.77A8.967 8.967 0 0 1 18 9.75V9A6 6 0 0 0 6 9v.75a8.967 8.967 0 0 1-2.312 6.022c1.733.64 3.56 1.085 5.455 1.31"/>
+              </svg>
+            </button>
+
+            <!-- USER AVATAR -->
+            <div class="relative ml-3">
+              <button class="flex items-center text-sm rounded-full focus:outline-none" id="user-menu-btn">
+                <span class="sr-only">Open user menu</span>
+                <%= image_tag (current_user.try(:avatar_url) || "https://res.cloudinary.com/dkby5x3px/image/upload/v1773747185/Gov_Logo_jlnbux.png"),
+                              alt: current_user.email,
+                              class: "h-8 w-8 rounded-full" %>
+              </button>
+            </div>
+
+          </div>
+        </div>
+
+        <!-- MOBILE MENU BUTTON -->
+        <div class="-mr-2 flex md:hidden">
+          <button type="button" class="inline-flex items-center justify-center rounded-md p-2 text-gray-400 hover:bg-white/5 hover:text-white">
+            <span class="sr-only">Open main menu</span>
+            <svg class="h-6 w-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+              <path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.5"
+                    d="M3.75 6.75h16.5M3.75 12h16.5m-16.5 5.25h16.5"/>
+            </svg>
+          </button>
+        </div>
+
+      </div>
+    </div>
+
+    <!-- MOBILE MENU -->
+    <div class="md:hidden">
+      <div class="space-y-1 px-2 pt-2 pb-3 sm:px-3">
+        <%= link_to "Dashboard", request.path, class: "block rounded-md bg-gray-900 px-3 py-2 text-base font-medium text-white" %>
+        <%= link_to "Channels", youtube_channels_path, class: "block rounded-md px-3 py-2 text-base font-medium text-gray-300 hover:text-white" %>
+        <%= link_to "Streams", streams_path, class: "block rounded-md px-3 py-2 text-base font-medium text-gray-300 hover:text-white" %>
+
+        <!-- MOBILE SIGN OUT -->
+        <%= button_to "Sign out",
+                      destroy_user_session_path,
+                      method: :delete,
+                      class: "w-full text-left rounded-md px-3 py-2 text-base font-medium text-gray-300 hover:text-white bg-transparent border-none",
+                      form: { class: "inline" } %>
+      </div>
+    </div>
+
+  </nav>
+</div>

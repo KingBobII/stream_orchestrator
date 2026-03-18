@@ -10,7 +10,7 @@
 #
 # It's strongly recommended that you check this file into your version control system.
 
-ActiveRecord::Schema[7.1].define(version: 2026_03_17_102056) do
+ActiveRecord::Schema[7.1].define(version: 2026_03_18_093533) do
   # These are extensions that must be enabled in order to support this database
   enable_extension "plpgsql"
 
@@ -20,6 +20,24 @@ ActiveRecord::Schema[7.1].define(version: 2026_03_17_102056) do
     t.datetime "created_at", null: false
     t.datetime "updated_at", null: false
     t.index ["jti"], name: "index_jwt_denylists_on_jti", unique: true
+  end
+
+  create_table "streams", force: :cascade do |t|
+    t.string "title", null: false
+    t.text "description"
+    t.string "status", default: "scheduled", null: false
+    t.string "visibility", default: "private", null: false
+    t.datetime "scheduled_at"
+    t.bigint "youtube_channel_id", null: false
+    t.string "external_video_id"
+    t.jsonb "thumbnails", default: {}
+    t.datetime "created_at", null: false
+    t.datetime "updated_at", null: false
+    t.index ["external_video_id"], name: "index_streams_on_external_video_id", unique: true
+    t.index ["scheduled_at"], name: "index_streams_on_scheduled_at"
+    t.index ["status"], name: "index_streams_on_status"
+    t.index ["visibility"], name: "index_streams_on_visibility"
+    t.index ["youtube_channel_id"], name: "index_streams_on_youtube_channel_id"
   end
 
   create_table "users", force: :cascade do |t|
@@ -40,4 +58,26 @@ ActiveRecord::Schema[7.1].define(version: 2026_03_17_102056) do
     t.index ["uid"], name: "index_users_on_uid"
   end
 
+  create_table "youtube_channels", force: :cascade do |t|
+    t.string "name", null: false
+    t.string "external_id"
+    t.text "description"
+    t.string "status", default: "inactive", null: false
+    t.datetime "published_at"
+    t.bigint "owner_id"
+    t.string "avatar_url"
+    t.string "banner_url"
+    t.string "oauth_access_token"
+    t.string "oauth_refresh_token"
+    t.datetime "oauth_expires_at"
+    t.jsonb "settings", default: {}
+    t.datetime "created_at", null: false
+    t.datetime "updated_at", null: false
+    t.index ["external_id"], name: "index_youtube_channels_on_external_id", unique: true
+    t.index ["name"], name: "index_youtube_channels_on_name"
+    t.index ["owner_id"], name: "index_youtube_channels_on_owner_id"
+  end
+
+  add_foreign_key "streams", "youtube_channels"
+  add_foreign_key "youtube_channels", "users", column: "owner_id"
 end
