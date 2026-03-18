@@ -11,18 +11,20 @@
 
           <div class="hidden md:block">
             <div class="ml-10 flex items-baseline space-x-4">
-              <%= link_to "Dashboard", request.path, class: "rounded-md bg-gray-900 px-3 py-2 text-sm font-medium text-white" %>
 
               <% if current_user&.admin? %>
+              <%= link_to "Dashboard", admin_dashboard_path, class: "rounded-md bg-gray-900 px-3 py-2 text-sm font-medium text-white" %>
                 <%= link_to "Users", admin_users_path, class: "rounded-md px-3 py-2 text-sm font-medium text-gray-300 hover:text-white" %>
                 <%= link_to "Channels", admin_youtube_channels_path, class: "rounded-md px-3 py-2 text-sm font-medium text-gray-300 hover:text-white" %>
                 <%= link_to "Streams", admin_streams_path, class: "rounded-md px-3 py-2 text-sm font-medium text-gray-300 hover:text-white" %>
 
               <% elsif current_user&.stream_operator? %>
+                <%= link_to "Dashboard", stream_operator_dashboard_path, class: "rounded-md bg-gray-900 px-3 py-2 text-sm font-medium text-white" %>
                 <%= link_to "My Channels", stream_operator_youtube_channels_path, class: "rounded-md px-3 py-2 text-sm font-medium text-gray-300 hover:text-white" %>
                 <%= link_to "Schedule", stream_operator_streams_path, class: "rounded-md px-3 py-2 text-sm font-medium text-gray-300 hover:text-white" %>
 
               <% elsif current_user&.production_operator? %>
+                <%= link_to "Dashboard", production_operator_dashboard_path, class: "rounded-md bg-gray-900 px-3 py-2 text-sm font-medium text-white" %>
                 <%= link_to "Streams", production_operator_streams_path, class: "rounded-md px-3 py-2 text-sm font-medium text-gray-300 hover:text-white" %>
               <% end %>
             </div>
@@ -33,6 +35,11 @@
         <div class="hidden md:block">
           <div class="ml-4 flex items-center md:ml-6 space-x-4">
 
+
+             <% if current_user&.admin? %>
+               <%= link_to "Add Stream", new_admin_stream_path, class: "bg-white border px-4 py-2 rounded" %>
+
+              <% end %>
             <!-- SIGN OUT -->
             <%= button_to "Sign out",
                           destroy_user_session_path,

@@ -54,6 +54,8 @@ gem 'devise'
 gem 'devise-jwt'
 gem "tailwindcss-rails", "~> 4.4"
 
+gem "kaminari"
+
 gem "cloudinary"
 
 
