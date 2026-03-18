@@ -6,15 +6,17 @@
 #   # -------------------------
 #   STATUSES = %w[scheduled live ended cancelled].freeze
 #   VISIBILITIES = %w[public unlisted private].freeze
+#   SYNC_STATUSES = %w[pending syncing synced failed].freeze
 
 #   # -------------------------
 #   # VALIDATIONS
 #   # -------------------------
-#   validates :title, presence: true
+#   validates :title, presence: true, length: { maximum: 240 }
 #   validates :status, presence: true, inclusion: { in: STATUSES }
 #   validates :visibility, presence: true, inclusion: { in: VISIBILITIES }
-#   validates :scheduled_at, presence: true, if: :scheduled?
+#   validates :sync_status, presence: true, inclusion: { in: SYNC_STATUSES }
 
+#   validates :scheduled_at, presence: true, if: :scheduled?
 #   validates :external_video_id, uniqueness: true, allow_blank: true
 
 #   # -------------------------
@@ -28,6 +30,20 @@
 #   scope :public_streams, -> { where(visibility: "public") }
 #   scope :unlisted_streams, -> { where(visibility: "unlisted") }
 #   scope :private_streams, -> { where(visibility: "private") }
+
+#   scope :pending_sync, -> { where(sync_status: "pending") }
+#   scope :syncing, -> { where(sync_status: "syncing") }
+#   scope :synced, -> { where(sync_status: "synced") }
+#   scope :failed_sync, -> { where(sync_status: "failed") }
+#   scope :unsynced_for_youtube, -> {
+#     where(status: "scheduled", sync_status: %w[pending failed], external_video_id: nil)
+#   }
+
+#   # -------------------------
+#   # CALLBACKS
+#   # -------------------------
+#   before_validation :strip_title
+#   before_save :clear_scheduled_at_unless_scheduled
 
 #   # -------------------------
 #   # HELPERS
@@ -44,11 +60,33 @@
 #     status == "ended"
 #   end
 
-#   # Thumbnail helper (VERY useful for UI)
-#   def thumbnail_url(size = :high)
-#     return unless thumbnails.present?
+#   def cancelled?
+#     status == "cancelled"
+#   end
 
-#     thumbnails[size.to_s]["url"] rescue nil
+#   def pending_sync?
+#     sync_status == "pending"
+#   end
+
+#   def syncing?
+#     sync_status == "syncing"
+#   end
+
+#   def synced?
+#     sync_status == "synced"
+#   end
+
+#   def failed_sync?
+#     sync_status == "failed"
+#   end
+
+#   # Thumbnail helper
+#   def thumbnail_url(size = :high)
+#     return nil unless thumbnails.present? && thumbnails.is_a?(Hash)
+
+#     thumbnails.dig(size.to_s, "url")
+#   rescue
+#     nil
 #   end
 
 #   # Visibility helpers
@@ -63,8 +101,32 @@
 #   def private?
 #     visibility == "private"
 #   end
+
+#   # Use this to decide if a background job should create a YouTube broadcast
+#   def needs_scheduling_on_youtube?
+#     scheduled? && external_video_id.blank? && pending_sync?
+#   end
+
+#   # Returns scheduled_at in app-local timezone for display
+#   def scheduled_at_local
+#     scheduled_at&.in_time_zone("Africa/Johannesburg")
+#   end
+
+#   # Friendly URL
+#   def to_param
+#     "#{id}-#{title.to_s.parameterize}"
+#   end
+
+#   private
+
+#   def strip_title
+#     self.title = title.strip if title.respond_to?(:strip)
+#   end
+
+#   def clear_scheduled_at_unless_scheduled
+#     self.scheduled_at = nil unless scheduled?
+#   end
 # end
-# app/models/stream.rb
 class Stream < ApplicationRecord
   belongs_to :youtube_channel
 
@@ -73,6 +135,7 @@ class Stream < ApplicationRecord
   # -------------------------
   STATUSES = %w[scheduled live ended cancelled].freeze
   VISIBILITIES = %w[public unlisted private].freeze
+  SYNC_STATUSES = %w[pending syncing synced failed].freeze
 
   # -------------------------
   # VALIDATIONS
@@ -80,8 +143,9 @@ class Stream < ApplicationRecord
   validates :title, presence: true, length: { maximum: 240 }
   validates :status, presence: true, inclusion: { in: STATUSES }
   validates :visibility, presence: true, inclusion: { in: VISIBILITIES }
-  validates :scheduled_at, presence: true, if: :scheduled?
+  validates :sync_status, presence: true, inclusion: { in: SYNC_STATUSES }
 
+  validates :scheduled_at, presence: true, if: :scheduled?
   validates :external_video_id, uniqueness: true, allow_blank: true
 
   # -------------------------
@@ -96,11 +160,21 @@ class Stream < ApplicationRecord
   scope :unlisted_streams, -> { where(visibility: "unlisted") }
   scope :private_streams, -> { where(visibility: "private") }
 
+  scope :pending_sync, -> { where(sync_status: "pending") }
+  scope :syncing, -> { where(sync_status: "syncing") }
+  scope :synced, -> { where(sync_status: "synced") }
+  scope :failed_sync, -> { where(sync_status: "failed") }
+
+  scope :unsynced_for_youtube, -> {
+    where(status: "scheduled", sync_status: %w[pending failed], external_video_id: nil)
+  }
+
   # -------------------------
   # CALLBACKS
   # -------------------------
   before_validation :strip_title
   before_save :clear_scheduled_at_unless_scheduled
+  after_commit :enqueue_youtube_sync_job, on: %i[create update]
 
   # -------------------------
   # HELPERS
@@ -117,18 +191,34 @@ class Stream < ApplicationRecord
     status == "ended"
   end
 
-  # Thumbnail helper (VERY useful for UI)
-  # `thumbnails` is a jsonb column that looks like:
-  # { "default": {"url":"..."}, "medium": {...}, "high": {...} }
+  def cancelled?
+    status == "cancelled"
+  end
+
+  def pending_sync?
+    sync_status == "pending"
+  end
+
+  def syncing?
+    sync_status == "syncing"
+  end
+
+  def synced?
+    sync_status == "synced"
+  end
+
+  def failed_sync?
+    sync_status == "failed"
+  end
+
   def thumbnail_url(size = :high)
     return nil unless thumbnails.present? && thumbnails.is_a?(Hash)
 
-    thumbnails[size.to_s] && thumbnails[size.to_s]["url"]
+    thumbnails.dig(size.to_s, "url")
   rescue
     nil
   end
 
-  # Visibility helpers (keeps your existing method names)
   def public?
     visibility == "public"
   end
@@ -141,17 +231,14 @@ class Stream < ApplicationRecord
     visibility == "private"
   end
 
-  # Use this to decide if a background job should create a YouTube broadcast
   def needs_scheduling_on_youtube?
-    scheduled? && external_video_id.blank?
+    scheduled? && external_video_id.blank? && pending_sync?
   end
 
-  # Returns scheduled_at in app-local timezone for display
   def scheduled_at_local
     scheduled_at&.in_time_zone("Africa/Johannesburg")
   end
 
-  # Friendly URL
   def to_param
     "#{id}-#{title.to_s.parameterize}"
   end
@@ -164,5 +251,23 @@ class Stream < ApplicationRecord
 
   def clear_scheduled_at_unless_scheduled
     self.scheduled_at = nil unless scheduled?
+  end
+
+  def enqueue_youtube_sync_job
+    return unless should_enqueue_youtube_sync_job?
+
+    Youtube::SyncStreamJob.perform_later(id)
+  end
+
+  def should_enqueue_youtube_sync_job?
+    return false unless scheduled?
+    return false unless scheduled_at.present?
+    return false unless external_video_id.blank?
+    return false unless pending_sync?
+
+    previous_changes.key?("id") ||
+      previous_changes.key?("status") ||
+      previous_changes.key?("scheduled_at") ||
+      previous_changes.key?("youtube_channel_id")
   end
 end

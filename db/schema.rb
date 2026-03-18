@@ -10,7 +10,7 @@
 #
 # It's strongly recommended that you check this file into your version control system.
 
-ActiveRecord::Schema[7.1].define(version: 2026_03_18_093533) do
+ActiveRecord::Schema[7.1].define(version: 2026_03_18_220738) do
   # These are extensions that must be enabled in order to support this database
   enable_extension "plpgsql"
 
@@ -33,9 +33,14 @@ ActiveRecord::Schema[7.1].define(version: 2026_03_18_093533) do
     t.jsonb "thumbnails", default: {}
     t.datetime "created_at", null: false
     t.datetime "updated_at", null: false
+    t.string "sync_status", default: "pending", null: false
+    t.text "sync_error"
+    t.datetime "synced_at"
     t.index ["external_video_id"], name: "index_streams_on_external_video_id", unique: true
     t.index ["scheduled_at"], name: "index_streams_on_scheduled_at"
     t.index ["status"], name: "index_streams_on_status"
+    t.index ["sync_status"], name: "index_streams_on_sync_status"
+    t.index ["synced_at"], name: "index_streams_on_synced_at"
     t.index ["visibility"], name: "index_streams_on_visibility"
     t.index ["youtube_channel_id"], name: "index_streams_on_youtube_channel_id"
   end
