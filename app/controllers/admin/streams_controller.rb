@@ -1,12 +1,12 @@
 # module Admin
-#   class StreamsController < Admin::ApplicationController
-#     before_action :set_stream, only: %i[show edit update destroy]
-
+#   class StreamsController < Admin::BaseController
 #     def index
-#       @streams = Stream.includes(:youtube_channel).order(scheduled_at: :desc).page(params[:page])
+#       @streams = Stream.order(scheduled_at: :desc)
 #     end
 
-#     def show; end
+#     def show
+#       @stream = Stream.find(params[:id])
+#     end
 
 #     def new
 #       @stream = Stream.new
@@ -15,80 +15,89 @@
 #     def create
 #       @stream = Stream.new(stream_params)
 #       if @stream.save
-#         redirect_to admin_stream_path(@stream), notice: "Stream created."
+#         redirect_to admin_stream_path(@stream), notice: "Stream created"
 #       else
-#         render :new, status: :unprocessable_entity
+#         render :new
 #       end
 #     end
 
-#     def edit; end
+#     def edit
+#       @stream = Stream.find(params[:id])
+#     end
 
 #     def update
+#       @stream = Stream.find(params[:id])
 #       if @stream.update(stream_params)
-#         redirect_to admin_stream_path(@stream), notice: "Stream updated."
+#         redirect_to admin_stream_path(@stream), notice: "Stream updated"
 #       else
-#         render :edit, status: :unprocessable_entity
+#         render :edit
 #       end
 #     end
 
 #     def destroy
-#       @stream.destroy
-#       redirect_to admin_streams_path, notice: "Stream removed."
+#       Stream.find(params[:id]).destroy
+#       redirect_to admin_streams_path, notice: "Stream removed"
 #     end
 
 #     private
 
-#     def set_stream
-#       @stream = Stream.find(params[:id])
-#     end
-
 #     def stream_params
-#       params.require(:stream).permit(:title, :description, :status, :scheduled_at, :duration_minutes, :youtube_channel_id, :external_video_id, :thumbnails)
+#       params.require(:stream).permit(:title, :description, :status, :scheduled_at, :youtube_channel_id, :visibility)
 #     end
 #   end
 # end
+# app/controllers/admin/streams_controller.rb
+# app/controllers/admin/streams_controller.rb
 module Admin
   class StreamsController < Admin::BaseController
+    before_action :set_stream, only: %i[show edit update destroy]
+
     def index
-      @streams = Stream.order(scheduled_at: :desc)
+      # avoid N+1 by including the channel; paginate results
+      @streams = Stream.includes(:youtube_channel)
+                       .order(scheduled_at: :desc)
+                       .page(params[:page])
+                       .per(params[:per_page] || 15)
     end
 
-    def show
-      @stream = Stream.find(params[:id])
-    end
+    def show; end
 
     def new
-      @stream = Stream.new
+      @stream = Stream.new(status: "scheduled", visibility: "private")
     end
 
     def create
       @stream = Stream.new(stream_params)
       if @stream.save
+        # optional: enqueue job if you want immediate scheduling
+        # ScheduleYoutubeBroadcastJob.perform_later(@stream.id) if @stream.needs_scheduling_on_youtube?
+
         redirect_to admin_stream_path(@stream), notice: "Stream created"
       else
-        render :new
+        render :new, status: :unprocessable_entity
       end
     end
 
-    def edit
-      @stream = Stream.find(params[:id])
-    end
+    def edit; end
 
     def update
-      @stream = Stream.find(params[:id])
       if @stream.update(stream_params)
         redirect_to admin_stream_path(@stream), notice: "Stream updated"
       else
-        render :edit
+        render :edit, status: :unprocessable_entity
       end
     end
 
     def destroy
-      Stream.find(params[:id]).destroy
+      @stream.destroy
       redirect_to admin_streams_path, notice: "Stream removed"
     end
 
     private
+
+    def set_stream
+      @stream = Stream.find(params[:id])
+    end
 
     def stream_params
       params.require(:stream).permit(:title, :description, :status, :scheduled_at, :youtube_channel_id, :visibility)

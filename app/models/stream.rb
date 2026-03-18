@@ -1,25 +1,37 @@
 # class Stream < ApplicationRecord
-#   belongs_to :youtube_channel, optional: true
+#   belongs_to :youtube_channel
 
+#   # -------------------------
+#   # CONSTANTS
+#   # -------------------------
 #   STATUSES = %w[scheduled live ended cancelled].freeze
+#   VISIBILITIES = %w[public unlisted private].freeze
 
+#   # -------------------------
+#   # VALIDATIONS
+#   # -------------------------
 #   validates :title, presence: true
 #   validates :status, presence: true, inclusion: { in: STATUSES }
-#   validates :scheduled_at, presence: true, if: -> { scheduled? || live? }
+#   validates :visibility, presence: true, inclusion: { in: VISIBILITIES }
+#   validates :scheduled_at, presence: true, if: :scheduled?
 
-#   scope :upcoming, -> { where("scheduled_at >= ?", Time.current).order(scheduled_at: :asc) }
+#   validates :external_video_id, uniqueness: true, allow_blank: true
+
+#   # -------------------------
+#   # SCOPES
+#   # -------------------------
+#   scope :upcoming, -> { where("scheduled_at >= ?", Time.current).order(:scheduled_at) }
 #   scope :past, -> { where("scheduled_at < ?", Time.current).order(scheduled_at: :desc) }
 #   scope :live, -> { where(status: "live") }
 #   scope :scheduled, -> { where(status: "scheduled") }
 
-#   def channel
-#     youtube_channel
-#   end
+#   scope :public_streams, -> { where(visibility: "public") }
+#   scope :unlisted_streams, -> { where(visibility: "unlisted") }
+#   scope :private_streams, -> { where(visibility: "private") }
 
-#   def channel=(val)
-#     self.youtube_channel = val
-#   end
-
+#   # -------------------------
+#   # HELPERS
+#   # -------------------------
 #   def scheduled?
 #     status == "scheduled"
 #   end
@@ -27,7 +39,32 @@
 #   def live?
 #     status == "live"
 #   end
+
+#   def ended?
+#     status == "ended"
+#   end
+
+#   # Thumbnail helper (VERY useful for UI)
+#   def thumbnail_url(size = :high)
+#     return unless thumbnails.present?
+
+#     thumbnails[size.to_s]["url"] rescue nil
+#   end
+
+#   # Visibility helpers
+#   def public?
+#     visibility == "public"
+#   end
+
+#   def unlisted?
+#     visibility == "unlisted"
+#   end
+
+#   def private?
+#     visibility == "private"
+#   end
 # end
+# app/models/stream.rb
 class Stream < ApplicationRecord
   belongs_to :youtube_channel
 
@@ -40,7 +77,7 @@ class Stream < ApplicationRecord
   # -------------------------
   # VALIDATIONS
   # -------------------------
-  validates :title, presence: true
+  validates :title, presence: true, length: { maximum: 240 }
   validates :status, presence: true, inclusion: { in: STATUSES }
   validates :visibility, presence: true, inclusion: { in: VISIBILITIES }
   validates :scheduled_at, presence: true, if: :scheduled?
@@ -60,6 +97,12 @@ class Stream < ApplicationRecord
   scope :private_streams, -> { where(visibility: "private") }
 
   # -------------------------
+  # CALLBACKS
+  # -------------------------
+  before_validation :strip_title
+  before_save :clear_scheduled_at_unless_scheduled
+
+  # -------------------------
   # HELPERS
   # -------------------------
   def scheduled?
@@ -75,13 +118,17 @@ class Stream < ApplicationRecord
   end
 
   # Thumbnail helper (VERY useful for UI)
+  # `thumbnails` is a jsonb column that looks like:
+  # { "default": {"url":"..."}, "medium": {...}, "high": {...} }
   def thumbnail_url(size = :high)
-    return unless thumbnails.present?
+    return nil unless thumbnails.present? && thumbnails.is_a?(Hash)
 
-    thumbnails[size.to_s]["url"] rescue nil
+    thumbnails[size.to_s] && thumbnails[size.to_s]["url"]
+  rescue
+    nil
   end
 
-  # Visibility helpers
+  # Visibility helpers (keeps your existing method names)
   def public?
     visibility == "public"
   end
@@ -92,5 +139,30 @@ class Stream < ApplicationRecord
 
   def private?
     visibility == "private"
+  end
+
+  # Use this to decide if a background job should create a YouTube broadcast
+  def needs_scheduling_on_youtube?
+    scheduled? && external_video_id.blank?
+  end
+
+  # Returns scheduled_at in app-local timezone for display
+  def scheduled_at_local
+    scheduled_at&.in_time_zone("Africa/Johannesburg")
+  end
+
+  # Friendly URL
+  def to_param
+    "#{id}-#{title.to_s.parameterize}"
+  end
+
+  private
+
+  def strip_title
+    self.title = title.strip if title.respond_to?(:strip)
+  end
+
+  def clear_scheduled_at_unless_scheduled
+    self.scheduled_at = nil unless scheduled?
   end
 end

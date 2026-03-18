@@ -166,6 +166,18 @@ GEM
     json (2.19.1)
     jwt (3.1.2)
       base64
+    kaminari (1.2.2)
+      activesupport (>= 4.1.0)
+      kaminari-actionview (= 1.2.2)
+      kaminari-activerecord (= 1.2.2)
+      kaminari-core (= 1.2.2)
+    kaminari-actionview (1.2.2)
+      actionview
+      kaminari-core (= 1.2.2)
+    kaminari-activerecord (1.2.2)
+      activerecord
+      kaminari-core (= 1.2.2)
+    kaminari-core (1.2.2)
     logger (1.7.0)
     loofah (2.25.0)
       crass (~> 1.0.2)
@@ -374,6 +386,7 @@ DEPENDENCIES
   jbuilder
   jsbundling-rails
   jwt
+  kaminari
   pg (~> 1.1)
   puma (>= 5.0)
   rails (~> 7.1.5, >= 7.1.5.1)
