@@ -1,14 +1,57 @@
-<div class="bg-white p-6 rounded shadow">
-  <h1 class="text-2xl font-semibold mb-2"><%= @stream.title %></h1>
+<!--<div class="bg-white p-6 rounded shadow">
+  <h1 class="text-2xl font-semibold mb-2"><%#= @stream.title %></h1>
   <div class="text-sm text-gray-600 mb-4">
-    Channel: <strong><%= @stream.youtube_channel&.name %></strong> |
-    Status: <strong><%= @stream.status %></strong> |
-    Visibility: <strong><%= @stream.visibility %></strong>
+    Channel: <strong><%#= @stream.youtube_channel&.name %></strong> |
+    Status: <strong><%#= @stream.status %></strong> |
+    Visibility: <strong><%#= @stream.visibility %></strong>
   </div>
 
   <div class="mb-4">
     <h3 class="font-semibold">Description</h3>
-    <p class="text-sm text-gray-700"><%= simple_format(@stream.description || "—") %></p>
+    <p class="text-sm text-gray-700"><%#= simple_format(@stream.description || "—") %></p>
+  </div>
+
+  <div class="mb-4">
+    <h3 class="font-semibold">Scheduled at</h3>
+    <div><%#= @stream.scheduled_at_local&.strftime("%B %d, %H:%M %Z") || "Not scheduled" %></div>
+  </div>
+
+  <%# if @stream.external_video_id.present? %>-->
+<!--    <div class="mb-4">
+      <h3 class="font-semibold">YouTube broadcast</h3>
+      <p class="text-sm text-gray-700">External ID: <%#= @stream.external_video_id %></p>
+    </div>
+  <%# end %>-->
+<!--
+  <div class="flex space-x-3">
+    <%#= link_to "Edit", edit_admin_stream_path(@stream), class: "bg-gray-800 text-white px-4 py-2 rounded" %>-->
+    <%#= link_to "Back", admin_streams_path, class: "px-4 py-2 rounded border" %>
+<!--  </div>
+</div>
+-->
+<div class="bg-white p-6 rounded shadow">
+  <div class="flex items-start justify-between gap-4 mb-4">
+    <div>
+      <h1 class="text-2xl font-semibold mb-2"><%= @stream.title %></h1>
+      <div class="text-sm text-gray-600">
+        Channel: <strong><%= @stream.youtube_channel&.name %></strong> |
+        Status: <strong><%= @stream.status.titleize %></strong> |
+        Visibility: <strong><%= @stream.visibility.titleize %></strong> |
+        Sync: <strong><%= @stream.sync_status.titleize %></strong>
+      </div>
+    </div>
+
+    <% if @stream.pending_sync? || @stream.failed_sync? %>
+      <%= button_to "Sync to YouTube",
+          sync_to_youtube_admin_stream_path(@stream),
+          method: :post,
+          class: "bg-blue-600 text-white px-4 py-2 rounded hover:bg-blue-700" %>
+    <% end %>
+  </div>
+
+  <div class="mb-4">
+    <h3 class="font-semibold">Description</h3>
+    <p class="text-sm text-gray-700"><%= simple_format(@stream.description.presence || "—") %></p>
   </div>
 
   <div class="mb-4">
@@ -16,12 +59,25 @@
     <div><%= @stream.scheduled_at_local&.strftime("%B %d, %H:%M %Z") || "Not scheduled" %></div>
   </div>
 
-  <% if @stream.external_video_id.present? %>
-    <div class="mb-4">
-      <h3 class="font-semibold">YouTube broadcast</h3>
-      <p class="text-sm text-gray-700">External ID: <%= @stream.external_video_id %></p>
+  <div class="mb-4">
+    <h3 class="font-semibold">YouTube sync</h3>
+    <div class="text-sm text-gray-700">
+      <p>External ID: <%= @stream.external_video_id.presence || "—" %></p>
+      <p>Sync status: <%= @stream.sync_status.titleize %></p>
+      <p>Synced at: <%= @stream.synced_at&.strftime("%B %d, %H:%M %Z") || "—" %></p>
+
+      <% if @stream.sync_error.present? %>
+        <p class="text-red-600">Error: <%= @stream.sync_error %></p>
+      <% end %>
+
+      <% if @stream.youtube_url.present? %>
+        <p>
+          URL:
+          <%= link_to @stream.youtube_url, @stream.youtube_url, target: "_blank", rel: "noopener", class: "text-blue-600 underline" %>
+        </p>
+      <% end %>
     </div>
-  <% end %>
+  </div>
 
   <div class="flex space-x-3">
     <%= link_to "Edit", edit_admin_stream_path(@stream), class: "bg-gray-800 text-white px-4 py-2 rounded" %>

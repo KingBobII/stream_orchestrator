@@ -1,4 +1,4 @@
-<h1 class="text-2xl font-bold mb-4">Streams</h1>
+<!--<h1 class="text-2xl font-bold mb-4">Streams</h1>
 
 <table class="min-w-full bg-white">
   <thead>
@@ -12,16 +12,96 @@
     </tr>
   </thead>
   <tbody>
+    <%# @streams.each do |s| %>-->
+<!--      <tr class="border-t">
+        <td class="px-4 py-2"><%#= link_to s.title, admin_stream_path(s) %></td>
+        <td class="px-4 py-2"><%#= s.youtube_channel&.name %></td>
+        <td class="px-4 py-2"><%#= s.status.titleize %></td>
+        <td class="px-4 py-2"><%#= s.visibility.titleize %></td>
+        <td class="px-4 py-2"><%#= s.scheduled_at_local&.strftime("%b %d, %H:%M") %></td>
+        <td class="px-4 py-2 text-right">
+          <%#= link_to "Edit", edit_admin_stream_path(s), class: "text-sm text-blue-600" %>-->
+          <%#= link_to "Delete", admin_stream_path(s), method: :delete, data: { confirm: "Are you sure?" }, class: "text-sm text-red-600 ml-3" %>
+<!--        </td>
+      </tr>
+    <%# end %>-->
+<!--  </tbody>
+</table>
+
+<div class="mt-4">
+  <%#= paginate @streams %>-->
+<!--</div>
+-->
+<div class="flex items-center justify-between mb-4">
+  <div>
+    <h1 class="text-2xl font-bold">Streams</h1>
+    <p class="text-sm text-gray-600">
+      Pending YouTube syncs: <%= @pending_sync_count %>
+    </p>
+  </div>
+
+  <% if @pending_sync_count.positive? %>
+    <%= button_to "Sync all pending to YouTube",
+        sync_pending_to_youtube_admin_streams_path,
+        method: :post,
+        class: "bg-blue-600 text-white px-4 py-2 rounded hover:bg-blue-700" %>
+  <% end %>
+</div>
+
+<table class="min-w-full bg-white">
+  <thead>
+    <tr>
+      <th class="px-4 py-2 text-left">Title</th>
+      <th class="px-4 py-2 text-left">Channel</th>
+      <th class="px-4 py-2 text-left">Status</th>
+      <th class="px-4 py-2 text-left">Visibility</th>
+      <th class="px-4 py-2 text-left">Sync</th>
+      <th class="px-4 py-2 text-left">Scheduled</th>
+      <th class="px-4 py-2"></th>
+    </tr>
+  </thead>
+  <tbody>
     <% @streams.each do |s| %>
       <tr class="border-t">
-        <td class="px-4 py-2"><%= link_to s.title, admin_stream_path(s) %></td>
+        <td class="px-4 py-2">
+          <%= link_to s.title, admin_stream_path(s), class: "text-blue-600 hover:underline" %>
+        </td>
         <td class="px-4 py-2"><%= s.youtube_channel&.name %></td>
         <td class="px-4 py-2"><%= s.status.titleize %></td>
         <td class="px-4 py-2"><%= s.visibility.titleize %></td>
-        <td class="px-4 py-2"><%= s.scheduled_at_local&.strftime("%b %d, %H:%M") %></td>
-        <td class="px-4 py-2 text-right">
+        <td class="px-4 py-2">
+          <% if s.synced? %>
+            <span class="inline-flex rounded-full bg-green-100 px-2 py-1 text-xs font-medium text-green-800">
+              Synced
+            </span>
+          <% elsif s.syncing? %>
+            <span class="inline-flex rounded-full bg-yellow-100 px-2 py-1 text-xs font-medium text-yellow-800">
+              Syncing
+            </span>
+          <% elsif s.failed_sync? %>
+            <span class="inline-flex rounded-full bg-red-100 px-2 py-1 text-xs font-medium text-red-800">
+              Failed
+            </span>
+          <% else %>
+            <span class="inline-flex rounded-full bg-gray-100 px-2 py-1 text-xs font-medium text-gray-700">
+              Pending
+            </span>
+          <% end %>
+        </td>
+        <td class="px-4 py-2"><%= s.scheduled_at_local&.strftime("%b %d, %H:%M") || "—" %></td>
+        <td class="px-4 py-2 text-right whitespace-nowrap">
+          <% if s.pending_sync? || s.failed_sync? %>
+            <%= button_to "Sync",
+                sync_to_youtube_admin_stream_path(s),
+                method: :post,
+                class: "text-sm text-blue-600 inline-block mr-3" %>
+          <% end %>
+
           <%= link_to "Edit", edit_admin_stream_path(s), class: "text-sm text-blue-600" %>
-          <%= link_to "Delete", admin_stream_path(s), method: :delete, data: { confirm: "Are you sure?" }, class: "text-sm text-red-600 ml-3" %>
+          <%= link_to "Delete",
+              admin_stream_path(s),
+              data: { turbo_method: :delete, turbo_confirm: "Are you sure?" },
+              class: "text-sm text-red-600 ml-3" %>
         </td>
       </tr>
     <% end %>
