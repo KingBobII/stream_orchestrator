@@ -1,0 +1,31 @@
+<!DOCTYPE html>
+<html class="h-full bg-gray-100">
+<head>
+  <title>Admin</title>
+  <%= csrf_meta_tags %>
+  <%= csp_meta_tag %>
+  <%= stylesheet_link_tag "tailwind", "data-turbo-track": "reload" %>
+  <%#= javascript_include_tag "application", "data-turbo-track": "reload", defer: true %>
+</head>
+<body class="h-full">
+  <%= render "shared/topnav" %>
+
+  <header class="relative bg-white shadow-sm">
+    <div class="mx-auto max-w-7xl px-4 py-6 sm:px-6 lg:px-8">
+      <h1 class="text-3xl font-bold tracking-tight text-gray-900">Admin dashboard</h1>
+    </div>
+  </header>
+
+  <main>
+    <div class="mx-auto max-w-7xl px-4 py-6 sm:px-6 lg:px-8">
+      <% flash.each do |k, v| %>
+        <div class="mb-3 <%= k == 'notice' ? 'bg-green-50' : 'bg-red-50' %> p-3 rounded border">
+          <%= v %>
+        </div>
+      <% end %>
+
+      <%= yield %>
+    </div>
+  </main>
+</body>
+</html>

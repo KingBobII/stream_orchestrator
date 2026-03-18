@@ -1,0 +1,41 @@
+<%= form_with(model: stream, local: true) do |f| %>
+  <div class="space-y-4">
+    <div>
+      <%= f.label :title, class: "block text-sm font-medium" %>
+      <%= f.text_field :title, class: "mt-1 block w-full rounded border px-3 py-2" %>
+    </div>
+
+    <div>
+      <%= f.label :youtube_channel_id, "Channel", class: "block text-sm font-medium" %>
+      <%= f.collection_select :youtube_channel_id, YoutubeChannel.all, :id, :name, include_blank: true, class: "mt-1 block w-full rounded border px-3 py-2" %>
+    </div>
+
+    <div>
+      <%= f.label :description, class: "block text-sm font-medium" %>
+      <%= f.text_area :description, rows: 4, class: "mt-1 block w-full rounded border px-3 py-2" %>
+    </div>
+
+    <div class="grid grid-cols-3 gap-4">
+      <div>
+        <%= f.label :status, class: "block text-sm font-medium" %>
+        <%= f.select :status, Stream::STATUSES.map { |s| [s.humanize, s] }, {}, class: "mt-1 block w-full rounded border px-3 py-2" %>
+      </div>
+
+      <div>
+        <%= f.label :scheduled_at, class: "block text-sm font-medium" %>
+        <%= f.datetime_local_field :scheduled_at, class: "mt-1 block w-full rounded border px-3 py-2" %>
+      </div>
+
+      <div>
+        <%= f.label :visibility, class: "block text-sm font-medium" %>
+        <%= f.select :visibility,
+            Stream::VISIBILITIES.map { |v| [v.capitalize, v] },
+            {},
+            class: "mt-1 block w-full rounded border px-3 py-2" %>
+      </div>
+
+    <div>
+      <%= f.submit class: "px-4 py-2 bg-blue-600 text-white rounded" %>
+    </div>
+  </div>
+<% end %>
