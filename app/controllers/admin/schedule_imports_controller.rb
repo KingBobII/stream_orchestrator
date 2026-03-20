@@ -46,13 +46,58 @@ class Admin::ScheduleImportsController < Admin::BaseController
     @cleaned_rows = @schedule_import.cleaned_rows_for_review
   end
 
+#  def confirm
+#     @schedule_import = ScheduleImport.find(params[:id])
+#     @youtube_channels = YoutubeChannel.order(:name)
+#     @raw_rows = @schedule_import.parsed_rows_for_review
+#     @cleaned_rows = @schedule_import.cleaned_rows_for_review
+
+#     rows = confirm_params.fetch(:rows, {}).to_h
+
+#     entries = rows
+#       .sort_by { |index, _| index.to_i }
+#       .map { |_, value| value.to_h }
+
+#     created_streams = []
+
+#     Stream.transaction do
+#       entries.each do |entry|
+#         scheduled_at = parse_scheduled_at(entry)
+
+#         created_streams << Stream.create!(
+#           title: entry[:title].presence || entry["title"],
+#           description: entry[:description].presence || entry["description"],
+#           status: "scheduled",
+#           visibility: entry[:visibility].presence || entry["visibility"] || "public",
+#           scheduled_at: scheduled_at,
+#           youtube_channel_id: entry[:youtube_channel_id].presence || entry["youtube_channel_id"]
+#         )
+#       end
+
+#       @schedule_import.update!(status: "completed")
+#     end
+
+#     redirect_to admin_schedule_import_path(@schedule_import), notice: "#{created_streams.count} streams created."
+#   rescue ActiveRecord::RecordInvalid => e
+#   Rails.logger.error("Stream validation failed: #{e.record.errors.full_messages.to_sentence}")
+#   @schedule_import.errors.add(:base, e.record.errors.full_messages.to_sentence)
+#   render :show, status: :unprocessable_content
+#   rescue StandardError => e
+#     Rails.logger.error(e.full_message)
+#     @schedule_import.errors.add(:base, e.message)
+#     render :show, status: :unprocessable_content
+#   end
   def confirm
     @schedule_import = ScheduleImport.find(params[:id])
+    @youtube_channels = YoutubeChannel.order(:name)
+    @raw_rows = @schedule_import.parsed_rows_for_review
+    @cleaned_rows = @schedule_import.cleaned_rows_for_review
 
-    entries =
-      confirm_params.fetch(:rows, {})
-                    .sort_by { |index, _| index.to_i }
-                    .map { |_, value| value.to_h }
+    rows = confirm_params.fetch(:rows, {}).to_h
+
+    entries = rows
+      .sort_by { |index, _| index.to_i }
+      .map { |_, value| value.to_h }
 
     created_streams = []
 
@@ -64,26 +109,27 @@ class Admin::ScheduleImportsController < Admin::BaseController
           title: entry[:title].presence || entry["title"],
           description: entry[:description].presence || entry["description"],
           status: "scheduled",
-          visibility: (entry[:visibility].presence || entry["visibility"] || "public"),
+          visibility: entry[:visibility].presence || entry["visibility"] || "public",
           scheduled_at: scheduled_at,
-          youtube_channel_id: entry[:youtube_channel_id].presence || entry["youtube_channel_id"]
+          youtube_channel_id: entry[:youtube_channel_id].presence || entry["youtube_channel_id"],
+          schedule_import: @schedule_import
         )
       end
 
-      @schedule_import.update!(status: "confirmed")
+      @schedule_import.update!(status: "completed")
     end
 
-    redirect_to admin_schedule_import_path(@schedule_import), notice: "#{created_streams.count} streams created."
+    redirect_to admin_streams_path(import_id: @schedule_import.id),
+                notice: "#{created_streams.count} streams created."
   rescue ActiveRecord::RecordInvalid => e
-    @youtube_channels = YoutubeChannel.order(:name)
     @schedule_import.errors.add(:base, e.record.errors.full_messages.to_sentence)
     render :show, status: :unprocessable_content
   rescue StandardError => e
     Rails.logger.error(e.full_message)
-    @youtube_channels = YoutubeChannel.order(:name)
     @schedule_import.errors.add(:base, e.message)
     render :show, status: :unprocessable_content
   end
+
 
   private
 
@@ -95,9 +141,9 @@ class Admin::ScheduleImportsController < Admin::BaseController
     params.require(:schedule_import).permit(
       rows: [
         :title, :description, :location, :start_time, :end_time,
+        :time_text, :date_text, :scheduled_at,
         :visibility, :youtube_channel_id, :raw_text,
-        :raw_title, :raw_description, :committee, :date_text,
-        :time_text, :scheduled_at, :notes
+        :raw_title, :raw_description, :committee, :notes
       ]
     )
   end
@@ -115,6 +161,9 @@ class Admin::ScheduleImportsController < Admin::BaseController
       entry["time_text"].presence
 
     return nil if date_part.blank? || time_part.blank?
+
+    # If the time text is a range like "09:00 - 12:00", use the first time.
+    time_part = time_part.to_s.split(" - ").first.strip
 
     Time.zone.parse("#{date_part} #{time_part}")
   rescue ArgumentError, TypeError

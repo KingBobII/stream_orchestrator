@@ -10,7 +10,7 @@
 #
 # It's strongly recommended that you check this file into your version control system.
 
-ActiveRecord::Schema[7.1].define(version: 2026_03_20_093625) do
+ActiveRecord::Schema[7.1].define(version: 2026_03_20_225709) do
   # These are extensions that must be enabled in order to support this database
   enable_extension "plpgsql"
 
@@ -78,7 +78,9 @@ ActiveRecord::Schema[7.1].define(version: 2026_03_20_093625) do
     t.string "sync_status", default: "pending", null: false
     t.text "sync_error"
     t.datetime "synced_at"
+    t.bigint "schedule_import_id"
     t.index ["external_video_id"], name: "index_streams_on_external_video_id", unique: true
+    t.index ["schedule_import_id"], name: "index_streams_on_schedule_import_id"
     t.index ["scheduled_at"], name: "index_streams_on_scheduled_at"
     t.index ["status"], name: "index_streams_on_status"
     t.index ["sync_status"], name: "index_streams_on_sync_status"
@@ -127,6 +129,7 @@ ActiveRecord::Schema[7.1].define(version: 2026_03_20_093625) do
 
   add_foreign_key "active_storage_attachments", "active_storage_blobs", column: "blob_id"
   add_foreign_key "active_storage_variant_records", "active_storage_blobs", column: "blob_id"
+  add_foreign_key "streams", "schedule_imports"
   add_foreign_key "streams", "youtube_channels"
   add_foreign_key "youtube_channels", "users", column: "owner_id"
 end

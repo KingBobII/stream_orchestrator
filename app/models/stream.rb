@@ -1,5 +1,6 @@
 class Stream < ApplicationRecord
-  belongs_to :youtube_channel
+  belongs_to :youtube_channel, optional: true
+  belongs_to :schedule_import, optional: true
 
   # -------------------------
   # CONSTANTS
