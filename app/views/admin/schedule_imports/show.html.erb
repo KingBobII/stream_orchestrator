@@ -1,0 +1,110 @@
+<!-- app/views/admin/schedule_imports/show.html.erb -->
+<div class="max-w-6xl mx-auto p-6">
+  <h1 class="text-2xl font-semibold mb-2">Review parsed streams</h1>
+  <p class="text-sm text-gray-600 mb-6">
+    Check the parsed data below, choose a YouTube channel for each stream, then confirm to create the streams.
+  </p>
+
+  <% if @schedule_import.errors.any? %>
+    <div class="rounded border border-red-300 bg-red-50 p-4 text-red-700 mb-6">
+      <%= @schedule_import.errors.full_messages.to_sentence %>
+    </div>
+  <% end %>
+
+  <% if @schedule_import.status_failed? %>
+    <div class="rounded border border-red-300 bg-red-50 p-4 text-red-700 mb-6">
+      Parsing failed. No streams were created.
+    </div>
+  <% end %>
+
+  <%= form_with url: confirm_admin_schedule_import_path(@schedule_import), method: :patch, local: true do %>
+    <div class="space-y-6">
+      <% @schedule_import.parsed_streams_array.each_with_index do |entry, index| %>
+        <div class="rounded border bg-white p-4 shadow-sm">
+          <h2 class="font-semibold mb-4">Stream <%= index + 1 %></h2>
+
+          <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
+            <div>
+              <label class="block font-medium mb-1">Title</label>
+              <input
+                type="text"
+                name="schedule_import[parsed_streams][<%= index %>][title]"
+                value="<%= entry["title"] %>"
+                class="w-full border rounded p-2"
+              >
+            </div>
+
+            <div>
+              <label class="block font-medium mb-1">YouTube channel</label>
+              <select
+                name="schedule_import[parsed_streams][<%= index %>][youtube_channel_id]"
+                class="w-full border rounded p-2"
+                required
+              >
+                <option value="">Select a channel</option>
+                <% @youtube_channels.each do |channel| %>
+                  <option value="<%= channel.id %>" <%= "selected" if entry["youtube_channel_id"].to_s == channel.id.to_s %>>
+                    <%= channel.name %>
+                  </option>
+                <% end %>
+              </select>
+            </div>
+
+            <div>
+              <label class="block font-medium mb-1">Start time</label>
+              <input
+                type="time"
+                name="schedule_import[parsed_streams][<%= index %>][start_time]"
+                value="<%= entry["start_time"] %>"
+                class="w-full border rounded p-2"
+              >
+            </div>
+
+            <div>
+              <label class="block font-medium mb-1">End time</label>
+              <input
+                type="time"
+                name="schedule_import[parsed_streams][<%= index %>][end_time]"
+                value="<%= entry["end_time"] %>"
+                class="w-full border rounded p-2"
+              >
+            </div>
+
+            <div>
+              <label class="block font-medium mb-1">Visibility</label>
+              <select
+                name="schedule_import[parsed_streams][<%= index %>][visibility]"
+                class="w-full border rounded p-2"
+              >
+                <option value="public" <%= "selected" if entry["visibility"] == "public" %>>Public</option>
+                <option value="unlisted" <%= "selected" if entry["visibility"] == "unlisted" %>>Unlisted</option>
+                <option value="private" <%= "selected" if entry["visibility"] == "private" %>>Private</option>
+              </select>
+            </div>
+          </div>
+
+          <div class="mt-4">
+            <label class="block font-medium mb-1">Description</label>
+            <textarea
+              name="schedule_import[parsed_streams][<%= index %>][description]"
+              rows="4"
+              class="w-full border rounded p-2"
+            ><%= entry["description"] %></textarea>
+          </div>
+
+          <input
+            type="hidden"
+            name="schedule_import[parsed_streams][<%= index %>][raw_text]"
+            value="<%= entry["raw_text"] %>"
+          >
+        </div>
+      <% end %>
+    </div>
+
+    <div class="mt-6">
+      <button type="submit" class="rounded bg-green-600 text-white px-4 py-2">
+        Confirm and create streams
+      </button>
+    </div>
+  <% end %>
+</div>

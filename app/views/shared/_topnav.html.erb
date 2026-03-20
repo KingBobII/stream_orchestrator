@@ -35,11 +35,10 @@
         <div class="hidden md:block">
           <div class="ml-4 flex items-center md:ml-6 space-x-4">
 
-
              <% if current_user&.admin? %>
-               <%= link_to "Add Stream", new_admin_stream_path, class: "bg-white border px-4 py-2 rounded" %>
-
-              <% end %>
+                <%= link_to "Add Stream", new_admin_stream_path, class: "bg-white border px-4 py-2 rounded" %>
+                <%= link_to "Upload Schedule", new_admin_schedule_import_path, class: "bg-white border px-4 py-2 rounded" %>
+            <% end %>
             <!-- SIGN OUT -->
             <%= button_to "Sign out",
                           destroy_user_session_path,
