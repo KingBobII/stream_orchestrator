@@ -1,7 +1,33 @@
+<!--<div class="max-w-2xl mx-auto p-6">
+  <h1 class="text-2xl font-semibold mb-6">Import schedule PDF</h1>
+
+  <%#= form_with model: @schedule_import, url: admin_schedule_imports_path, local: true, class: "space-y-4" do |f| %>-->
+    <%# if @schedule_import.errors.any? %>
+<!--      <div class="rounded border border-red-300 bg-red-50 p-4 text-red-700">-->
+        <%#= @schedule_import.errors.full_messages.to_sentence %>
+<!--      </div>-->
+    <%# end %>
+<!--
+    <div>
+      <%#= f.label :pdf, "PDF file", class: "block font-medium mb-1" %>-->
+      <%#= f.file_field :pdf, accept: "application/pdf", class: "block w-full" %>
+<!--    </div>
+
+    <div>
+      <%#= f.label :schedule_date, "Schedule date", class: "block font-medium mb-1" %>-->
+      <%#= f.date_field :schedule_date, class: "block w-full border rounded p-2" %>
+<!--    </div>
+
+    <div>
+      <%#= f.submit "Upload and parse", class: "rounded bg-black text-white px-4 py-2" %>-->
+<!--    </div>-->
+  <%# end %>
+<!--</div>
+-->
 <div class="max-w-2xl mx-auto p-6">
   <h1 class="text-2xl font-semibold mb-6">Import schedule PDF</h1>
 
-  <%= form_with model: @schedule_import, url: admin_schedule_imports_path, local: true, class: "space-y-4" do |f| %>
+  <%= form_with model: @schedule_import, url: admin_schedule_imports_path, local: true, multipart: true, class: "space-y-4" do |f| %>
     <% if @schedule_import.errors.any? %>
       <div class="rounded border border-red-300 bg-red-50 p-4 text-red-700">
         <%= @schedule_import.errors.full_messages.to_sentence %>

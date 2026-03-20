@@ -4,20 +4,25 @@ class ScheduleImport < ApplicationRecord
   enum :status, {
     pending: "pending",
     parsed: "parsed",
-    confirmed: "confirmed",
+    reviewed: "reviewed",
+    completed: "completed",
     failed: "failed"
-  }, prefix: true
+  }, default: "pending"
 
-  validates :schedule_date, presence: true
-  validate :pdf_attached, on: :create
+  enum :ai_status, {
+    pending: "pending",
+    processing: "processing",
+    completed: "completed",
+    failed: "failed"
+  }, default: "pending", prefix: true
 
-  def parsed_streams_array
-    parsed_streams.is_a?(Array) ? parsed_streams : []
+  validates :pdf, presence: true
+
+  def parsed_rows_for_review
+    Array(parsed_streams).map(&:deep_stringify_keys)
   end
 
-  private
-
-  def pdf_attached
-    errors.add(:pdf, "must be attached") unless pdf.attached?
+  def cleaned_rows_for_review
+    Array(cleaned_streams).map(&:deep_stringify_keys)
   end
 end

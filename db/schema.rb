@@ -10,7 +10,7 @@
 #
 # It's strongly recommended that you check this file into your version control system.
 
-ActiveRecord::Schema[7.1].define(version: 2026_03_19_192243) do
+ActiveRecord::Schema[7.1].define(version: 2026_03_20_093625) do
   # These are extensions that must be enabled in order to support this database
   enable_extension "plpgsql"
 
@@ -57,6 +57,11 @@ ActiveRecord::Schema[7.1].define(version: 2026_03_19_192243) do
     t.date "schedule_date"
     t.datetime "created_at", null: false
     t.datetime "updated_at", null: false
+    t.jsonb "cleaned_streams", default: [], null: false
+    t.string "ai_status", default: "pending", null: false
+    t.string "ai_model"
+    t.text "ai_error"
+    t.datetime "ai_processed_at"
   end
 
   create_table "streams", force: :cascade do |t|
