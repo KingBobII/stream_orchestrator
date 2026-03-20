@@ -1,16 +1,28 @@
 # Rails.application.routes.draw do
-#   # Devise mappings must be created first
 #   devise_for :users, controllers: {
 #     sessions: "users/sessions"
 #   }
 
 #   namespace :admin do
 #     get "dashboard", to: "dashboard#index", as: :dashboard
+
 #     resources :users, only: %i[index show edit update destroy]
+
 #     resources :youtube_channels do
-#       member { post :sync }
+#       member do
+#         post :sync
+#       end
 #     end
-#     resources :streams
+
+#     resources :streams do
+#       member do
+#         post :sync_to_youtube
+#       end
+
+#       collection do
+#         post :sync_pending_to_youtube
+#       end
+#     end
 #   end
 
 #   namespace :stream_operator do
@@ -60,6 +72,12 @@ Rails.application.routes.draw do
 
       collection do
         post :sync_pending_to_youtube
+      end
+    end
+
+    resources :schedule_imports, only: %i[new create show] do
+      member do
+        patch :confirm
       end
     end
   end

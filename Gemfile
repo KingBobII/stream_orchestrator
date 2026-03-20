@@ -58,6 +58,8 @@ gem "kaminari"
 
 gem "cloudinary"
 
+gem "pdf-reader"
+
 
 group :development, :test do
   # See https://guides.rubyonrails.org/debugging_rails_applications.html#debugging-with-the-debug-gem
