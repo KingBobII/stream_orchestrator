@@ -1,28 +1,16 @@
 <div class="max-w-6xl mx-auto px-4 py-8">
-  <h1 class="text-2xl font-bold mb-2">Review Schedule Import</h1>
+  <h1 class="text-2xl font-bold mb-2">Review AI-cleaned schedule items</h1>
+  <p class="text-sm text-gray-600 mb-6">
+    Edit anything that looks off, then create the streams.
+  </p>
 
-  <div class="border rounded-lg p-4 mb-6 bg-white shadow-sm">
-    <p><strong>Status:</strong> <%= @schedule_import.status %></p>
-    <p><strong>AI status:</strong> <%= @schedule_import.ai_status %></p>
-    <p><strong>AI model:</strong> <%= @schedule_import.ai_model.presence || "—" %></p>
-    <p><strong>AI processed at:</strong> <%= @schedule_import.ai_processed_at.presence || "—" %></p>
-  </div>
-
-  <% if @schedule_import.ai_error.present? %>
-    <div class="border border-red-300 bg-red-50 text-red-800 rounded p-4 mb-6">
-      <strong>AI error:</strong> <%= @schedule_import.ai_error %>
-    </div>
-  <% end %>
-
-  <%= form_with url: confirm_admin_schedule_import_path(@schedule_import), method: :patch, local: true do %>
-    <h2 class="text-xl font-semibold mb-3">Cleaned rows</h2>
-
+  <%= form_with url: confirm_schedule_import_path(@schedule_import), method: :post do %>
     <% @cleaned_rows.each_with_index do |row, index| %>
       <% raw_row = @raw_rows[index] || {} %>
 
       <div class="border rounded-lg p-4 mb-6 bg-white shadow-sm">
         <div class="flex items-center justify-between mb-4">
-          <h3 class="font-semibold">Item <%= index + 1 %></h3>
+          <h2 class="text-lg font-semibold">Item <%= index + 1 %></h2>
           <span class="text-xs px-2 py-1 rounded bg-gray-100">AI cleaned</span>
         </div>
 
@@ -87,16 +75,7 @@
     <% end %>
 
     <div class="mt-6">
-      <%= submit_tag "Create Streams", class: "rounded bg-black text-white px-4 py-2" %>
-    </div>
-  <% end %>
-
-  <h2 class="text-xl font-semibold mb-3 mt-10">Raw parsed rows</h2>
-
-  <% @raw_rows.each_with_index do |row, index| %>
-    <div class="border rounded-lg p-4 mb-4 bg-gray-50">
-      <h3 class="font-semibold mb-2">Item <%= index + 1 %></h3>
-      <pre class="text-xs overflow-x-auto"><%= JSON.pretty_generate(row) %></pre>
+      <%= submit_tag "Create Streams", class: "px-4 py-2 rounded bg-black text-white" %>
     </div>
   <% end %>
 </div>
