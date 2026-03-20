@@ -1,5 +1,6 @@
 class ScheduleImport < ApplicationRecord
   has_one_attached :pdf
+  has_many :streams, dependent: :nullify
 
   enum :status, {
     pending: "pending",

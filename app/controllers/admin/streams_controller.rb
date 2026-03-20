@@ -95,13 +95,29 @@ module Admin
   class StreamsController < Admin::BaseController
     before_action :set_stream, only: %i[show edit update destroy sync_to_youtube]
 
-    def index
-      @streams = Stream.includes(:youtube_channel)
-                       .order(scheduled_at: :desc)
-                       .page(params[:page])
-                       .per(params[:per_page] || 15)
+    # def index
+    #   @streams = Stream.includes(:youtube_channel)
+    #                    .order(scheduled_at: :desc)
+    #                    .page(params[:page])
+    #                    .per(params[:per_page] || 15)
 
-      @pending_sync_count = Stream.unsynced_for_youtube.count
+    #   @pending_sync_count = Stream.unsynced_for_youtube.count
+    # end
+    def index
+      base_scope = Stream.includes(:youtube_channel).order(scheduled_at: :desc)
+
+      @pending_sync_count = base_scope.where(status: "scheduled")
+                                      .where(sync_status: %w[pending failed])
+                                      .where(external_video_id: nil)
+                                      .count
+
+      if params[:import_id].present?
+        @imported_streams = base_scope.where(schedule_import_id: params[:import_id])
+        @streams = base_scope.where.not(schedule_import_id: params[:import_id]).page(params[:page]).per(15)
+      else
+        @imported_streams = []
+        @streams = base_scope.page(params[:page]).per(15)
+      end
     end
 
     def show; end
