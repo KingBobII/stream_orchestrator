@@ -10,7 +10,7 @@
 #
 # It's strongly recommended that you check this file into your version control system.
 
-ActiveRecord::Schema[7.1].define(version: 2026_03_20_225709) do
+ActiveRecord::Schema[7.1].define(version: 2026_03_25_154234) do
   # These are extensions that must be enabled in order to support this database
   enable_extension "plpgsql"
 
@@ -71,7 +71,6 @@ ActiveRecord::Schema[7.1].define(version: 2026_03_20_225709) do
     t.string "visibility", default: "private", null: false
     t.datetime "scheduled_at"
     t.bigint "youtube_channel_id", null: false
-    t.string "external_video_id"
     t.jsonb "thumbnails", default: {}
     t.datetime "created_at", null: false
     t.datetime "updated_at", null: false
@@ -79,14 +78,20 @@ ActiveRecord::Schema[7.1].define(version: 2026_03_20_225709) do
     t.text "sync_error"
     t.datetime "synced_at"
     t.bigint "schedule_import_id"
-    t.index ["external_video_id"], name: "index_streams_on_external_video_id", unique: true
+    t.string "youtube_broadcast_id"
+    t.string "youtube_stream_id"
+    t.string "youtube_video_id"
+    t.string "youtube_watch_url"
     t.index ["schedule_import_id"], name: "index_streams_on_schedule_import_id"
     t.index ["scheduled_at"], name: "index_streams_on_scheduled_at"
     t.index ["status"], name: "index_streams_on_status"
     t.index ["sync_status"], name: "index_streams_on_sync_status"
     t.index ["synced_at"], name: "index_streams_on_synced_at"
     t.index ["visibility"], name: "index_streams_on_visibility"
+    t.index ["youtube_broadcast_id"], name: "index_streams_on_youtube_broadcast_id", unique: true
     t.index ["youtube_channel_id"], name: "index_streams_on_youtube_channel_id"
+    t.index ["youtube_stream_id"], name: "index_streams_on_youtube_stream_id", unique: true
+    t.index ["youtube_video_id"], name: "index_streams_on_youtube_video_id", unique: true
   end
 
   create_table "users", force: :cascade do |t|
@@ -116,12 +121,14 @@ ActiveRecord::Schema[7.1].define(version: 2026_03_20_225709) do
     t.bigint "owner_id"
     t.string "avatar_url"
     t.string "banner_url"
-    t.string "oauth_access_token"
-    t.string "oauth_refresh_token"
+    t.text "oauth_access_token"
+    t.text "oauth_refresh_token"
     t.datetime "oauth_expires_at"
     t.jsonb "settings", default: {}
     t.datetime "created_at", null: false
     t.datetime "updated_at", null: false
+    t.string "oauth_scope"
+    t.string "oauth_token_type"
     t.index ["external_id"], name: "index_youtube_channels_on_external_id", unique: true
     t.index ["name"], name: "index_youtube_channels_on_name"
     t.index ["owner_id"], name: "index_youtube_channels_on_owner_id"

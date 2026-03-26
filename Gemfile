@@ -62,6 +62,9 @@ gem "pdf-reader"
 
 gem "openai", "~> 0.56.0"
 
+gem "google-apis-youtube_v3"
+gem "googleauth"
+
 
 group :development, :test do
   # See https://guides.rubyonrails.org/debugging_rails_applications.html#debugging-with-the-debug-gem

@@ -1,0 +1,163 @@
+<%# app/views/admin/youtube_channels/show.html.erb %>
+
+<div class="space-y-6">
+  <div class="bg-white border border-gray-200 rounded-2xl shadow-sm p-6">
+    <div class="flex flex-col gap-4 md:flex-row md:items-start md:justify-between">
+      <div>
+        <div class="flex items-center gap-3">
+          <h1 class="text-2xl font-bold text-gray-900"><%= @youtube_channel.name %></h1>
+          <span class="inline-flex items-center rounded-full px-3 py-1 text-xs font-medium <%= @youtube_channel.connection_badge_class %>">
+            <%= @youtube_channel.connection_state %>
+          </span>
+        </div>
+
+        <p class="mt-2 text-sm text-gray-500">
+          External ID: <span class="text-gray-700"><%= @youtube_channel.external_id.presence || "—" %></span>
+        </p>
+
+        <p class="mt-1 text-sm text-gray-500">
+          Owner: <span class="text-gray-700"><%= @youtube_channel.owner_email %></span>
+        </p>
+      </div>
+
+      <div class="flex flex-wrap gap-2">
+        <%= link_to "Back to Channels",
+                    admin_youtube_channels_path,
+                    class: "inline-flex items-center rounded-lg border border-gray-300 px-4 py-2 text-sm font-medium text-gray-700 hover:bg-gray-50" %>
+
+        <%= link_to "Edit",
+                    edit_admin_youtube_channel_path(@youtube_channel),
+                    class: "inline-flex items-center rounded-lg border border-gray-300 px-4 py-2 text-sm font-medium text-gray-700 hover:bg-gray-50" %>
+
+        <%= button_to "Sync Metadata",
+                      sync_admin_youtube_channel_path(@youtube_channel),
+                      method: :post,
+                      class: "inline-flex items-center rounded-lg bg-gray-900 px-4 py-2 text-sm font-medium text-white hover:bg-gray-800" %>
+
+        <% if @youtube_channel.connected? %>
+          <%= button_to "Disconnect",
+                        disconnect_admin_youtube_channel_path(@youtube_channel),
+                        method: :post,
+                        class: "inline-flex items-center rounded-lg bg-red-600 px-4 py-2 text-sm font-medium text-white hover:bg-red-700" %>
+        <% else %>
+          <%= link_to "Connect YouTube",
+                      connect_admin_youtube_channel_path(@youtube_channel),
+                      class: "inline-flex items-center rounded-lg bg-blue-600 px-4 py-2 text-sm font-medium text-white hover:bg-blue-700" %>
+        <% end %>
+      </div>
+    </div>
+  </div>
+
+  <div class="grid grid-cols-1 lg:grid-cols-3 gap-6">
+    <div class="bg-white border border-gray-200 rounded-2xl shadow-sm p-6 lg:col-span-1">
+      <h2 class="text-lg font-semibold text-gray-900">Connection</h2>
+
+      <dl class="mt-4 space-y-3 text-sm">
+        <div class="flex justify-between gap-4">
+          <dt class="text-gray-500">Status</dt>
+          <dd class="font-medium text-gray-900"><%= @youtube_channel.connection_state %></dd>
+        </div>
+
+        <div class="flex justify-between gap-4">
+          <dt class="text-gray-500">Token expiry</dt>
+          <dd class="font-medium text-gray-900">
+            <%= @youtube_channel.oauth_expires_at.present? ? l(@youtube_channel.oauth_expires_at, format: :long) : "—" %>
+          </dd>
+        </div>
+
+        <div class="flex justify-between gap-4">
+          <dt class="text-gray-500">OAuth scope</dt>
+          <dd class="font-medium text-gray-900 break-words text-right">
+            <%= @youtube_channel.oauth_scope.presence || "—" %>
+          </dd>
+        </div>
+
+        <div class="flex justify-between gap-4">
+          <dt class="text-gray-500">Token type</dt>
+          <dd class="font-medium text-gray-900"><%= @youtube_channel.oauth_token_type.presence || "—" %></dd>
+        </div>
+      </dl>
+    </div>
+
+    <div class="bg-white border border-gray-200 rounded-2xl shadow-sm p-6 lg:col-span-2">
+      <h2 class="text-lg font-semibold text-gray-900">Channel Details</h2>
+
+      <div class="mt-4 grid grid-cols-1 md:grid-cols-2 gap-4 text-sm">
+        <div class="rounded-xl border border-gray-200 p-4">
+          <p class="text-gray-500">Description</p>
+          <p class="mt-1 text-gray-900 whitespace-pre-line">
+            <%= @youtube_channel.description.presence || "No description yet." %>
+          </p>
+        </div>
+
+        <div class="rounded-xl border border-gray-200 p-4">
+          <p class="text-gray-500">Published At</p>
+          <p class="mt-1 text-gray-900">
+            <%= @youtube_channel.published_at.present? ? l(@youtube_channel.published_at, format: :long) : "—" %>
+          </p>
+        </div>
+
+        <div class="rounded-xl border border-gray-200 p-4">
+          <p class="text-gray-500">Avatar</p>
+          <div class="mt-2 flex items-center gap-3">
+            <% if @youtube_channel.avatar_url.present? %>
+              <%= image_tag @youtube_channel.avatar_url, class: "h-12 w-12 rounded-full object-cover" %>
+            <% else %>
+              <div class="h-12 w-12 rounded-full bg-gray-100"></div>
+            <% end %>
+            <span class="text-gray-900">Profile image</span>
+          </div>
+        </div>
+
+        <div class="rounded-xl border border-gray-200 p-4">
+          <p class="text-gray-500">Banner</p>
+          <div class="mt-2">
+            <% if @youtube_channel.banner_url.present? %>
+              <%= image_tag @youtube_channel.banner_url, class: "h-20 w-full rounded-lg object-cover" %>
+            <% else %>
+              <div class="h-20 w-full rounded-lg bg-gray-100"></div>
+            <% end %>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <div class="bg-white border border-gray-200 rounded-2xl shadow-sm p-6">
+    <div class="flex items-center justify-between">
+      <h2 class="text-lg font-semibold text-gray-900">Streams</h2>
+      <span class="text-sm text-gray-500"><%= @youtube_channel.streams.count %> total</span>
+    </div>
+
+    <% if @youtube_channel.streams.exists? %>
+      <div class="mt-4 overflow-hidden rounded-xl border border-gray-200">
+        <table class="min-w-full divide-y divide-gray-200">
+          <thead class="bg-gray-50">
+            <tr>
+              <th class="px-4 py-3 text-left text-xs font-semibold uppercase tracking-wider text-gray-500">Title</th>
+              <th class="px-4 py-3 text-left text-xs font-semibold uppercase tracking-wider text-gray-500">Status</th>
+              <th class="px-4 py-3 text-left text-xs font-semibold uppercase tracking-wider text-gray-500">Sync</th>
+              <th class="px-4 py-3 text-left text-xs font-semibold uppercase tracking-wider text-gray-500">Scheduled</th>
+            </tr>
+          </thead>
+          <tbody class="divide-y divide-gray-200 bg-white">
+            <% @youtube_channel.streams.order(scheduled_at: :desc).each do |stream| %>
+              <tr>
+                <td class="px-4 py-3">
+                  <%= link_to stream.title, admin_stream_path(stream), class: "font-medium text-gray-900 hover:underline" %>
+                </td>
+                <td class="px-4 py-3 text-sm text-gray-700"><%= stream.status %></td>
+                <td class="px-4 py-3 text-sm text-gray-700"><%= stream.sync_status %></td>
+                <td class="px-4 py-3 text-sm text-gray-700">
+                  <%= stream.scheduled_at.present? ? l(stream.scheduled_at, format: :long) : "—" %>
+                </td>
+              </tr>
+            <% end %>
+          </tbody>
+        </table>
+      </div>
+    <% else %>
+      <p class="mt-4 text-sm text-gray-500">No streams are linked to this channel yet.</p>
+    <% end %>
+  </div>
+</div>
