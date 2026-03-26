@@ -1,5 +1,5 @@
 class Stream < ApplicationRecord
-  belongs_to :youtube_channel, optional: true
+  belongs_to :youtube_channel
   belongs_to :schedule_import, optional: true
 
   # -------------------------
@@ -7,7 +7,7 @@ class Stream < ApplicationRecord
   # -------------------------
   STATUSES = %w[scheduled live ended cancelled].freeze
   VISIBILITIES = %w[public unlisted private].freeze
-  SYNC_STATUSES = %w[pending syncing synced failed].freeze
+  SYNC_STATUSES = %w[pending ready syncing synced failed].freeze
 
   # -------------------------
   # VALIDATIONS
@@ -18,7 +18,14 @@ class Stream < ApplicationRecord
   validates :sync_status, presence: true, inclusion: { in: SYNC_STATUSES }
 
   validates :scheduled_at, presence: true, if: :scheduled?
-  validates :external_video_id, uniqueness: true, allow_blank: true
+  validates :youtube_channel, presence: true
+
+  validates :youtube_broadcast_id, uniqueness: true, allow_blank: true
+  validates :youtube_stream_id, uniqueness: true, allow_blank: true
+  validates :youtube_video_id, uniqueness: true, allow_blank: true
+  validates :youtube_watch_url, uniqueness: true, allow_blank: true
+
+  validate :youtube_sync_fields_present_when_synced
 
   # -------------------------
   # SCOPES
@@ -33,20 +40,19 @@ class Stream < ApplicationRecord
   scope :private_streams, -> { where(visibility: "private") }
 
   scope :pending_sync, -> { where(sync_status: "pending") }
+  scope :ready_for_sync, -> { where(sync_status: "ready") }
   scope :syncing, -> { where(sync_status: "syncing") }
   scope :synced, -> { where(sync_status: "synced") }
   scope :failed_sync, -> { where(sync_status: "failed") }
 
   scope :unsynced_for_youtube, -> {
-    where(status: "scheduled", sync_status: %w[pending failed], external_video_id: nil)
+    where(status: "scheduled", sync_status: %w[pending ready failed], youtube_broadcast_id: nil)
   }
 
   # -------------------------
   # CALLBACKS
   # -------------------------
   before_validation :strip_title
-  before_save :clear_scheduled_at_unless_scheduled
-  after_commit :enqueue_youtube_sync_job, on: %i[create update]
 
   # -------------------------
   # HELPERS
@@ -71,6 +77,10 @@ class Stream < ApplicationRecord
     sync_status == "pending"
   end
 
+  def ready_for_sync?
+    sync_status == "ready"
+  end
+
   def syncing?
     sync_status == "syncing"
   end
@@ -81,14 +91,6 @@ class Stream < ApplicationRecord
 
   def failed_sync?
     sync_status == "failed"
-  end
-
-  def thumbnail_url(size = :high)
-    return nil unless thumbnails.present? && thumbnails.is_a?(Hash)
-
-    thumbnails.dig(size.to_s, "url")
-  rescue
-    nil
   end
 
   def public?
@@ -103,8 +105,18 @@ class Stream < ApplicationRecord
     visibility == "private"
   end
 
+  def thumbnail_url(size = :high)
+    return nil unless thumbnails.is_a?(Hash)
+
+    thumbnails.dig(size.to_s, "url")
+  end
+
+  def watch_url
+    youtube_watch_url.presence || fallback_watch_url
+  end
+
   def needs_scheduling_on_youtube?
-    scheduled? && external_video_id.blank? && pending_sync?
+    scheduled? && pending_sync? && youtube_broadcast_id.blank?
   end
 
   def scheduled_at_local
@@ -121,25 +133,18 @@ class Stream < ApplicationRecord
     self.title = title.strip if title.respond_to?(:strip)
   end
 
-  def clear_scheduled_at_unless_scheduled
-    self.scheduled_at = nil unless scheduled?
+  def fallback_watch_url
+    return nil if youtube_video_id.blank?
+
+    "https://www.youtube.com/watch?v=#{youtube_video_id}"
   end
 
-  def enqueue_youtube_sync_job
-    return unless should_enqueue_youtube_sync_job?
+  def youtube_sync_fields_present_when_synced
+    return unless synced?
 
-    Youtube::SyncStreamJob.perform_later(id)
-  end
-
-  def should_enqueue_youtube_sync_job?
-    return false unless scheduled?
-    return false unless scheduled_at.present?
-    return false unless external_video_id.blank?
-    return false unless pending_sync?
-
-    previous_changes.key?("id") ||
-      previous_changes.key?("status") ||
-      previous_changes.key?("scheduled_at") ||
-      previous_changes.key?("youtube_channel_id")
+    errors.add(:youtube_broadcast_id, "can't be blank") if youtube_broadcast_id.blank?
+    errors.add(:youtube_stream_id, "can't be blank") if youtube_stream_id.blank?
+    errors.add(:youtube_video_id, "can't be blank") if youtube_video_id.blank?
+    errors.add(:youtube_watch_url, "can't be blank") if youtube_watch_url.blank?
   end
 end

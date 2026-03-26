@@ -68,35 +68,29 @@
           </div>
         </div>
 
-        <!-- MOBILE MENU BUTTON -->
-        <div class="-mr-2 flex md:hidden">
-          <button type="button" class="inline-flex items-center justify-center rounded-md p-2 text-gray-400 hover:bg-white/5 hover:text-white">
-            <span class="sr-only">Open main menu</span>
-            <svg class="h-6 w-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-              <path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.5"
-                    d="M3.75 6.75h16.5M3.75 12h16.5m-16.5 5.25h16.5"/>
-            </svg>
-          </button>
+       <!-- MOBILE MENU -->
+      <div class="md:hidden">
+        <div class="space-y-1 px-2 pt-2 pb-3 sm:px-3">
+          <% if current_user&.admin? %>
+            <%= link_to "Dashboard", admin_dashboard_path, class: "block rounded-md bg-gray-900 px-3 py-2 text-base font-medium text-white" %>
+            <%= link_to "Channels", admin_youtube_channels_path, class: "block rounded-md px-3 py-2 text-base font-medium text-gray-300 hover:text-white" %>
+            <%= link_to "Streams", admin_streams_path, class: "block rounded-md px-3 py-2 text-base font-medium text-gray-300 hover:text-white" %>
+          <% elsif current_user&.stream_operator? %>
+            <%= link_to "Dashboard", stream_operator_dashboard_path, class: "block rounded-md bg-gray-900 px-3 py-2 text-base font-medium text-white" %>
+            <%= link_to "My Channels", stream_operator_youtube_channels_path, class: "block rounded-md px-3 py-2 text-base font-medium text-gray-300 hover:text-white" %>
+            <%= link_to "Schedule", stream_operator_streams_path, class: "block rounded-md px-3 py-2 text-base font-medium text-gray-300 hover:text-white" %>
+          <% elsif current_user&.production_operator? %>
+            <%= link_to "Dashboard", production_operator_dashboard_path, class: "block rounded-md bg-gray-900 px-3 py-2 text-base font-medium text-white" %>
+            <%= link_to "Streams", production_operator_streams_path, class: "block rounded-md px-3 py-2 text-base font-medium text-gray-300 hover:text-white" %>
+          <% end %>
+
+          <%= button_to "Sign out",
+                        destroy_user_session_path,
+                        method: :delete,
+                        class: "w-full text-left rounded-md px-3 py-2 text-base font-medium text-gray-300 hover:text-white bg-transparent border-none",
+                        form: { class: "inline" } %>
         </div>
-
       </div>
-    </div>
-
-    <!-- MOBILE MENU -->
-    <div class="md:hidden">
-      <div class="space-y-1 px-2 pt-2 pb-3 sm:px-3">
-        <%= link_to "Dashboard", request.path, class: "block rounded-md bg-gray-900 px-3 py-2 text-base font-medium text-white" %>
-        <%= link_to "Channels", youtube_channels_path, class: "block rounded-md px-3 py-2 text-base font-medium text-gray-300 hover:text-white" %>
-        <%= link_to "Streams", streams_path, class: "block rounded-md px-3 py-2 text-base font-medium text-gray-300 hover:text-white" %>
-
-        <!-- MOBILE SIGN OUT -->
-        <%= button_to "Sign out",
-                      destroy_user_session_path,
-                      method: :delete,
-                      class: "w-full text-left rounded-md px-3 py-2 text-base font-medium text-gray-300 hover:text-white bg-transparent border-none",
-                      form: { class: "inline" } %>
-      </div>
-    </div>
 
   </nav>
 </div>
