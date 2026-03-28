@@ -6,17 +6,15 @@ Rails.application.routes.draw do
   namespace :admin do
     get "dashboard", to: "dashboard#index", as: :dashboard
 
+    get "youtube/connect", to: "youtube_connections#connect", as: :connect_youtube
+    get "youtube/oauth_callback", to: "youtube_connections#oauth_callback", as: :youtube_oauth_callback
+
     resources :users, only: %i[index show edit update destroy]
 
     resources :youtube_channels do
       member do
         post :sync
-        get :connect
         post :disconnect
-      end
-
-      collection do
-        get :oauth_callback
       end
     end
 

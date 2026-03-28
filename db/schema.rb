@@ -10,7 +10,7 @@
 #
 # It's strongly recommended that you check this file into your version control system.
 
-ActiveRecord::Schema[7.1].define(version: 2026_03_25_154234) do
+ActiveRecord::Schema[7.1].define(version: 2026_03_26_122824) do
   # These are extensions that must be enabled in order to support this database
   enable_extension "plpgsql"
 
@@ -82,6 +82,8 @@ ActiveRecord::Schema[7.1].define(version: 2026_03_25_154234) do
     t.string "youtube_stream_id"
     t.string "youtube_video_id"
     t.string "youtube_watch_url"
+    t.string "youtube_ingestion_address"
+    t.string "youtube_stream_name"
     t.index ["schedule_import_id"], name: "index_streams_on_schedule_import_id"
     t.index ["scheduled_at"], name: "index_streams_on_scheduled_at"
     t.index ["status"], name: "index_streams_on_status"
@@ -129,6 +131,12 @@ ActiveRecord::Schema[7.1].define(version: 2026_03_25_154234) do
     t.datetime "updated_at", null: false
     t.string "oauth_scope"
     t.string "oauth_token_type"
+    t.string "thumbnail_url"
+    t.string "uploads_playlist_id"
+    t.integer "subscriber_count", default: 0, null: false
+    t.datetime "last_synced_at"
+    t.datetime "connected_at"
+    t.text "sync_error"
     t.index ["external_id"], name: "index_youtube_channels_on_external_id", unique: true
     t.index ["name"], name: "index_youtube_channels_on_name"
     t.index ["owner_id"], name: "index_youtube_channels_on_owner_id"

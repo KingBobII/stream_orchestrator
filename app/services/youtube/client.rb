@@ -1,78 +1,310 @@
-# app/services/youtube/client.rb
+# # app/services/youtube/client.rb
+# module Youtube
+#   class Client
+#     Result = Struct.new(
+#       :broadcast_id,
+#       :stream_id,
+#       :video_id,
+#       :watch_url,
+#       :thumbnails,
+#       :status,
+#       :error,
+#       keyword_init: true
+#     )
+
+#     def create_broadcast(stream)
+#       if simulate?
+#         simulate_broadcast(stream)
+#       else
+#         create_real_broadcast(stream)
+#       end
+#     end
+
+#     def create_stream(stream)
+#       if simulate?
+#         simulate_stream(stream)
+#       else
+#         create_real_stream(stream)
+#       end
+#     end
+
+#     def bind_broadcast_to_stream(broadcast_id:, stream_id:)
+#       if simulate?
+#         true
+#       else
+#         bind_real_broadcast_to_stream(broadcast_id: broadcast_id, stream_id: stream_id)
+#       end
+#     end
+
+#     private
+
+#     def simulate?
+#       ENV["YOUTUBE_SIMULATE"].present? || Rails.env.development?
+#     end
+
+#     def simulate_broadcast(_stream)
+#       broadcast_id = "sim_broadcast_#{SecureRandom.hex(8)}"
+#       Result.new(
+#         broadcast_id: broadcast_id,
+#         video_id: broadcast_id,
+#         watch_url: "https://www.youtube.com/watch?v=#{broadcast_id}",
+#         thumbnails: {},
+#         status: "created",
+#         error: nil
+#       )
+#     end
+
+#     def simulate_stream(_stream)
+#       Result.new(
+#         stream_id: "sim_stream_#{SecureRandom.hex(8)}",
+#         status: "created",
+#         error: nil
+#       )
+#     end
+
+#     # Replace these with the real Google API calls when ready.
+#     def create_real_broadcast(_stream)
+#       raise NotImplementedError, "Google YouTube API broadcast creation is not wired yet."
+#     end
+
+#     def create_real_stream(_stream)
+#       raise NotImplementedError, "Google YouTube API stream creation is not wired yet."
+#     end
+
+#     def bind_real_broadcast_to_stream(broadcast_id:, stream_id:)
+#       raise NotImplementedError, "Google YouTube API broadcast/stream binding is not wired yet."
+#     end
+#   end
+# endrequire "net/http"
+require "uri"
+require "json"
+require "ostruct"
+
 module Youtube
   class Client
-    Result = Struct.new(
-      :broadcast_id,
-      :stream_id,
-      :video_id,
-      :watch_url,
-      :thumbnails,
-      :status,
-      :error,
-      keyword_init: true
-    )
+    BASE_URL = "https://www.googleapis.com/youtube/v3".freeze
+
+    GoogleApiError = Class.new(StandardError)
+
+    attr_reader :youtube_channel
+
+    def initialize(youtube_channel)
+      @youtube_channel = youtube_channel
+    end
+
+    def fetch_my_channels!
+      request(
+        :get,
+        "/channels",
+        params: {
+          part: "snippet,contentDetails,statistics,status",
+          mine: true,
+          maxResults: 50
+        }
+      )
+    end
+
+    def fetch_my_channel!
+      fetch_my_channels!
+    end
 
     def create_broadcast(stream)
-      if simulate?
-        simulate_broadcast(stream)
-      else
-        create_real_broadcast(stream)
-      end
+      request(
+        :post,
+        "/liveBroadcasts",
+        params: { part: "snippet,status,contentDetails" },
+        body: {
+          snippet: {
+            title: stream.title,
+            description: stream.description.to_s,
+            scheduledStartTime: stream.scheduled_at.utc.iso8601
+          },
+          status: {
+            privacyStatus: stream.visibility,
+            selfDeclaredMadeForKids: false
+          },
+          contentDetails: {
+            enableAutoStart: false,
+            enableAutoStop: false,
+            monitorStream: {
+              enableMonitorStream: false
+            }
+          }
+        }
+      )
+    end
+
+    def update_broadcast(stream)
+      request(
+        :put,
+        "/liveBroadcasts",
+        params: { part: "snippet,status,contentDetails" },
+        body: {
+          id: stream.youtube_broadcast_id,
+          snippet: {
+            title: stream.title,
+            description: stream.description.to_s,
+            scheduledStartTime: stream.scheduled_at.utc.iso8601
+          },
+          status: {
+            privacyStatus: stream.visibility,
+            selfDeclaredMadeForKids: false
+          },
+          contentDetails: {
+            enableAutoStart: false,
+            enableAutoStop: false,
+            monitorStream: {
+              enableMonitorStream: false
+            }
+          }
+        }
+      )
     end
 
     def create_stream(stream)
-      if simulate?
-        simulate_stream(stream)
-      else
-        create_real_stream(stream)
-      end
+      response = request(
+        :post,
+        "/liveStreams",
+        params: { part: "snippet,cdn,contentDetails" },
+        body: {
+          snippet: {
+            title: "#{stream.title} stream",
+            description: stream.description.to_s
+          },
+          cdn: {
+            ingestionType: "rtmp",
+            resolution: "variable",
+            frameRate: "variable"
+          },
+          contentDetails: {
+            isReusable: true
+          }
+        }
+      )
+
+      ingestion_info = response.dig("cdn", "ingestionInfo") || {}
+
+      OpenStruct.new(
+        stream_id: response["id"],
+        ingestion_address: ingestion_info["ingestionAddress"],
+        stream_name: ingestion_info["streamName"]
+      )
     end
 
     def bind_broadcast_to_stream(broadcast_id:, stream_id:)
-      if simulate?
-        true
-      else
-        bind_real_broadcast_to_stream(broadcast_id: broadcast_id, stream_id: stream_id)
+      request(
+        :post,
+        "/liveBroadcasts/bind",
+        params: {
+          id: broadcast_id,
+          streamId: stream_id,
+          part: "id,snippet,contentDetails,status"
+        }
+      )
+    end
+
+    def refresh_access_token!(refresh_token:)
+      response = Net::HTTP.start(TOKEN_URL.host, TOKEN_URL.port, use_ssl: true) do |http|
+        request = Net::HTTP::Post.new(TOKEN_URL)
+        request.set_form_data(
+          refresh_token: refresh_token,
+          client_id: client_id,
+          client_secret: client_secret,
+          grant_type: "refresh_token"
+        )
+        http.request(request)
       end
+
+      payload = JSON.parse(response.body)
+
+      unless response.is_a?(Net::HTTPSuccess)
+        raise GoogleApiError, payload["error_description"] || payload["error"] || "Token refresh failed"
+      end
+
+      payload
     end
 
     private
 
-    def simulate?
-      ENV["YOUTUBE_SIMULATE"].present? || Rails.env.development?
+    TOKEN_URL = URI("https://oauth2.googleapis.com/token").freeze
+
+    def request(method, path, params: {}, body: nil)
+      uri = URI("#{BASE_URL}#{path}")
+      uri.query = URI.encode_www_form(params.compact) if params.present?
+
+      response = perform_request(method, uri, body: body)
+      parsed = response.body.present? ? JSON.parse(response.body) : {}
+
+      unless response.is_a?(Net::HTTPSuccess)
+        message =
+          parsed.dig("error", "message") ||
+          parsed["error_description"] ||
+          parsed["error"] ||
+          "YouTube API request failed"
+
+        raise GoogleApiError, message
+      end
+
+      parsed
     end
 
-    def simulate_broadcast(_stream)
-      broadcast_id = "sim_broadcast_#{SecureRandom.hex(8)}"
-      Result.new(
-        broadcast_id: broadcast_id,
-        video_id: broadcast_id,
-        watch_url: "https://www.youtube.com/watch?v=#{broadcast_id}",
-        thumbnails: {},
-        status: "created",
-        error: nil
+    def perform_request(method, uri, body: nil)
+      request = build_request(method, uri)
+      request["Authorization"] = "Bearer #{access_token!}"
+      request["Content-Type"] = "application/json"
+      request.body = body.to_json if body.present?
+
+      Net::HTTP.start(uri.host, uri.port, use_ssl: true) do |http|
+        http.request(request)
+      end
+    end
+
+    def build_request(method, uri)
+      case method
+      when :get then Net::HTTP::Get.new(uri.request_uri)
+      when :post then Net::HTTP::Post.new(uri.request_uri)
+      when :put then Net::HTTP::Put.new(uri.request_uri)
+      when :delete then Net::HTTP::Delete.new(uri.request_uri)
+      else
+        raise ArgumentError, "Unsupported HTTP method: #{method}"
+      end
+    end
+
+    def access_token!
+      return youtube_channel.oauth_access_token if youtube_channel.oauth_access_token.present? && !youtube_channel.oauth_expired?
+
+      raise GoogleApiError, "Missing refresh token" if youtube_channel.oauth_refresh_token.blank?
+
+      token_data = refresh_access_token!(refresh_token: youtube_channel.oauth_refresh_token)
+
+      expires_at =
+        if token_data["expires_in"].present?
+          Time.current + token_data["expires_in"].to_i.seconds
+        else
+          youtube_channel.oauth_expires_at
+        end
+
+      youtube_channel.update!(
+        oauth_access_token: token_data["access_token"],
+        oauth_refresh_token: token_data["refresh_token"].presence || youtube_channel.oauth_refresh_token,
+        oauth_expires_at: expires_at,
+        oauth_scope: token_data["scope"].presence || youtube_channel.oauth_scope,
+        oauth_token_type: token_data["token_type"].presence || youtube_channel.oauth_token_type
       )
+
+      youtube_channel.oauth_access_token
     end
 
-    def simulate_stream(_stream)
-      Result.new(
-        stream_id: "sim_stream_#{SecureRandom.hex(8)}",
-        status: "created",
-        error: nil
-      )
+    def client_id
+      google_credentials.fetch(:client_id)
     end
 
-    # Replace these with the real Google API calls when ready.
-    def create_real_broadcast(_stream)
-      raise NotImplementedError, "Google YouTube API broadcast creation is not wired yet."
+    def client_secret
+      google_credentials.fetch(:client_secret)
     end
 
-    def create_real_stream(_stream)
-      raise NotImplementedError, "Google YouTube API stream creation is not wired yet."
-    end
-
-    def bind_real_broadcast_to_stream(broadcast_id:, stream_id:)
-      raise NotImplementedError, "Google YouTube API broadcast/stream binding is not wired yet."
+    def google_credentials
+      Rails.application.credentials.fetch(:google)
     end
   end
 end
