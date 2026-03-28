@@ -1,4 +1,3 @@
-# app/models/user.rb
 class User < ApplicationRecord
   devise :database_authenticatable,
          :registerable,
@@ -36,7 +35,6 @@ class User < ApplicationRecord
     ROLES.map { |r| [r.humanize, r] }
   end
 
-  # returns the path the user should be sent to after sign in
   def dashboard_root
     case role
     when "admin"

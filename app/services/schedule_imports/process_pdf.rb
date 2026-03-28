@@ -11,13 +11,6 @@ module ScheduleImports
     def call
       @schedule_import.update!(ai_status: "processing", ai_error: nil)
 
-      # Replace this with your current parser service if the name differs.
-      #
-      # Expected return shape:
-      # {
-      #   raw_text: "...",
-      #   parsed_streams: [...]
-      # }
       parsed_result = ScheduleImports::PDFParser.call(
         pdf_bytes: @schedule_import.pdf.download
       )

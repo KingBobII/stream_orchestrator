@@ -1,17 +1,3 @@
-# module Youtube
-#   class SyncStreamJob < ApplicationJob
-#     queue_as :default
-
-#     def perform(stream_id)
-#       stream = Stream.find_by(id: stream_id)
-#       return unless stream
-#       return if stream.synced?
-#       return unless stream.ready_for_sync? || stream.failed_sync?
-
-#       Youtube::BroadcastCreator.new(stream).call
-#     end
-#   end
-# end
 module Youtube
   class SyncStreamJob < ApplicationJob
     queue_as :default
@@ -25,7 +11,9 @@ module Youtube
         return
       end
 
-      Rails.logger.info("[Youtube::SyncStreamJob] found stream #{stream.id} status=#{stream.status} syncing=#{stream.syncing?} syncable=#{stream.syncable_to_youtube?}")
+      Rails.logger.info(
+        "[Youtube::SyncStreamJob] found stream #{stream.id} status=#{stream.status} syncing=#{stream.syncing?} syncable=#{stream.syncable_to_youtube?}"
+      )
 
       unless stream.syncable_to_youtube?
         Rails.logger.info("[Youtube::SyncStreamJob] stream not syncable stream_id=#{stream.id}")
@@ -38,11 +26,15 @@ module Youtube
       end
 
       if stream.youtube_broadcast_id.present?
-        Rails.logger.info("[Youtube::SyncStreamJob] updating broadcast stream_id=#{stream.id} broadcast_id=#{stream.youtube_broadcast_id}")
-        Youtube::BroadcastUpdater.new(stream).call
+        Rails.logger.info("[Youtube::SyncStreamJob] updating broadcast stream_id=#{stream.id}")
+        result = Youtube::BroadcastUpdater.new(stream).call
       else
         Rails.logger.info("[Youtube::SyncStreamJob] creating broadcast stream_id=#{stream.id}")
-        Youtube::BroadcastCreator.new(stream).call
+        result = Youtube::BroadcastCreator.new(stream).call
+      end
+
+      if result.respond_to?(:status) && result.status == "failed"
+        raise StandardError, result.error.presence || "YouTube sync failed"
       end
 
       Rails.logger.info("[Youtube::SyncStreamJob] finished stream_id=#{stream.id}")
