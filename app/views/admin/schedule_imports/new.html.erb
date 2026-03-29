@@ -1,25 +1,105 @@
-<div class="max-w-2xl mx-auto p-6">
-  <h1 class="text-2xl font-semibold mb-6">Import schedule PDF</h1>
+<div class="min-h-screen bg-slate-100 px-4 py-10 sm:px-6 lg:px-8">
+  <div class="mx-auto max-w-3xl">
+    <div class="mb-8">
+      <h1 class="mt-2 text-3xl font-semibold tracking-tight text-slate-900 sm:text-4xl">
+        Import schedule PDF
+      </h1>
+      <p class="mt-3 max-w-2xl text-sm leading-6 text-slate-600 sm:text-base">
+        Upload a schedule PDF and let the system extract the stream details automatically.
+      </p>
+    </div>
 
-  <%= form_with model: @schedule_import, url: admin_schedule_imports_path, local: true, multipart: true, class: "space-y-4" do |f| %>
-    <% if @schedule_import.errors.any? %>
-      <div class="rounded border border-red-300 bg-red-50 p-4 text-red-700">
-        <%= @schedule_import.errors.full_messages.to_sentence %>
+    <div class="overflow-hidden rounded-3xl border border-slate-200 bg-slate-900/90 shadow-2xl shadow-slate-300/30 backdrop-blur">
+      <div class="border-b border-white/10 px-6 py-5 sm:px-8">
+        <h2 class="text-lg font-medium text-white">Upload details</h2>
+        <p class="mt-1 text-sm text-slate-400">
+          Choose the PDF and select the schedule date before importing.
+        </p>
       </div>
-    <% end %>
 
-    <div>
-      <%= f.label :pdf, "PDF file", class: "block font-medium mb-1" %>
-      <%= f.file_field :pdf, accept: "application/pdf", class: "block w-full" %>
-    </div>
+      <div class="p-6 sm:p-8">
+        <% if @schedule_import.errors.any? %>
+          <div class="mb-6 rounded-2xl border border-red-500/20 bg-red-500/10 p-4 text-sm text-red-200">
+            <p class="font-medium text-red-100">There was a problem with your upload.</p>
+            <p class="mt-1"><%= @schedule_import.errors.full_messages.to_sentence %></p>
+          </div>
+        <% end %>
 
-    <div>
-      <%= f.label :schedule_date, "Schedule date", class: "block font-medium mb-1" %>
-      <%= f.date_field :schedule_date, class: "block w-full border rounded p-2" %>
-    </div>
+        <%= form_with model: @schedule_import,
+                      url: admin_schedule_imports_path,
+                      local: true,
+                      multipart: true,
+                      class: "space-y-6" do |f| %>
 
-    <div>
-      <%= f.submit "Upload and parse", class: "rounded bg-black text-white px-4 py-2" %>
+          <div>
+            <%= f.label :pdf, "PDF file", class: "mb-2 block text-sm font-medium text-slate-200" %>
+
+            <label class="group flex cursor-pointer flex-col items-center justify-center rounded-2xl border-2 border-dashed border-slate-700 bg-slate-950/60 px-6 py-10 text-center transition hover:border-cyan-500/60 hover:bg-slate-950">
+              <svg class="mb-4 h-10 w-10 text-slate-500 transition group-hover:text-cyan-400" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.5" d="M12 16V4m0 0L8 8m4-4 4 4M4 16v3a1 1 0 001 1h14a1 1 0 001-1v-3" />
+              </svg>
+
+              <p class="text-sm font-medium text-slate-100">
+                Click to choose a PDF file
+              </p>
+              <p class="mt-1 text-sm text-slate-400">
+                or drag and drop if your browser supports it
+              </p>
+              <p class="mt-3 text-xs text-slate-500">
+                PDF only
+              </p>
+
+              <div class="mt-5 w-full max-w-md">
+                <%= f.file_field :pdf,
+                                 accept: "application/pdf",
+                                 class: "block w-full cursor-pointer rounded-xl border border-slate-700 bg-slate-900 text-sm text-slate-300 file:mr-4 file:rounded-lg file:border-0 file:bg-cyan-500 file:px-4 file:py-2 file:text-sm file:font-semibold file:text-slate-950 hover:file:bg-cyan-400" %>
+              </div>
+            </label>
+          </div>
+
+          <div class="grid gap-6 sm:grid-cols-2">
+          <div class="relative">
+            <%= f.label :schedule_date, "Schedule date", class: "mb-2 block text-sm font-medium text-slate-200" %>
+
+            <%= f.date_field :schedule_date,
+                            id: "schedule_date",
+                            class: "block w-full rounded-xl border border-slate-700 bg-slate-950 px-4 py-3 pr-10 text-slate-100 shadow-sm outline-none transition placeholder:text-slate-500 focus:border-cyan-500 focus:ring-2 focus:ring-cyan-500/20 appearance-none" %>
+
+            <button
+              type="button"
+              class="absolute right-3 top-[3.15rem] flex h-5 w-5 items-center justify-center text-slate-400 hover:text-slate-200"
+              onclick="document.getElementById('schedule_date').showPicker ? document.getElementById('schedule_date').showPicker() : document.getElementById('schedule_date').focus()"
+              aria-label="Choose date"
+            >
+              <svg fill="none" viewBox="0 0 24 24" stroke="currentColor" class="h-5 w-5">
+                <path stroke-linecap="round"
+                      stroke-linejoin="round"
+                      stroke-width="1.5"
+                      d="M8 7V3m8 4V3M4 11h16M5 5h14a1 1 0 011 1v13a1 1 0 01-1 1H5a1 1 0 01-1-1V6a1 1 0 011-1z" />
+              </svg>
+            </button>
+          </div>
+
+            <div class="rounded-2xl border border-slate-800 bg-slate-950/60 p-4">
+              <p class="text-sm font-medium text-slate-200">What happens next</p>
+              <ul class="mt-3 space-y-2 text-sm text-slate-400">
+                <li>• The PDF is uploaded securely.</li>
+                <li>• The parser extracts the schedule content.</li>
+                <li>• You review and confirm the imported data.</li>
+              </ul>
+            </div>
+          </div>
+
+          <div class="flex items-center justify-end gap-3 border-t border-white/10 pt-6">
+            <%= link_to "Cancel",
+                        admin_schedule_imports_path,
+                        class: "rounded-xl border border-slate-700 px-5 py-3 text-sm font-medium text-slate-300 transition hover:border-slate-500 hover:bg-slate-800 hover:text-white" %>
+
+            <%= f.submit "Upload and parse",
+                         class: "rounded-xl bg-cyan-500 px-5 py-3 text-sm font-semibold text-slate-950 shadow-lg shadow-cyan-500/20 transition hover:bg-cyan-400 focus:outline-none focus:ring-2 focus:ring-cyan-400 focus:ring-offset-2 focus:ring-offset-slate-950" %>
+          </div>
+        <% end %>
+      </div>
     </div>
-  <% end %>
+  </div>
 </div>

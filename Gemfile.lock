@@ -178,6 +178,10 @@ GEM
     hashery (2.1.2)
     i18n (1.14.8)
       concurrent-ruby (~> 1.0)
+    importmap-rails (2.2.3)
+      actionpack (>= 6.0.0)
+      activesupport (>= 6.0.0)
+      railties (>= 6.0.0)
     io-console (0.8.2)
     irb (1.17.0)
       pp (>= 0.6.0)
@@ -437,6 +441,7 @@ DEPENDENCIES
   error_highlight (>= 0.4.0)
   google-apis-youtube_v3
   googleauth
+  importmap-rails
   jbuilder
   jsbundling-rails
   jwt
