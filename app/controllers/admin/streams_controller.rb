@@ -1,6 +1,7 @@
 module Admin
   class StreamsController < Admin::BaseController
-    before_action :set_stream, only: %i[show edit update destroy sync_to_youtube]
+    before_action :set_stream, only: %i[show update destroy sync_to_youtube]
+    before_action :load_form_data, only: %i[show update new create]
 
     def index
       base_scope = Stream.includes(:youtube_channel).order(scheduled_at: :desc)
@@ -50,8 +51,6 @@ module Admin
       end
     end
 
-    def edit; end
-
     def update
       if @stream.update(stream_params)
         queue_youtube_sync(@stream)
@@ -65,7 +64,7 @@ module Admin
 
         redirect_to admin_stream_path(@stream), notice: notice
       else
-        render :edit, status: :unprocessable_entity
+        render :show, status: :unprocessable_entity
       end
     end
 
@@ -98,6 +97,10 @@ module Admin
 
     def set_stream
       @stream = Stream.find(params[:id])
+    end
+
+    def load_form_data
+      @youtube_channels = YoutubeChannel.order(:name)
     end
 
     def stream_params

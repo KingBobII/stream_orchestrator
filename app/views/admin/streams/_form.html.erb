@@ -1,0 +1,67 @@
+<%= form_with model: [:admin, stream], class: "space-y-6" do |f| %>
+  <% if stream.errors.any? %>
+    <div class="rounded-2xl border border-red-200 bg-red-50 p-4 text-sm text-red-700">
+      <p class="font-medium">Please fix the errors below.</p>
+      <p class="mt-1"><%= stream.errors.full_messages.to_sentence %></p>
+    </div>
+  <% end %>
+
+  <div class="grid gap-6 sm:grid-cols-2">
+    <div>
+      <%= f.label :title, class: "mb-2 block text-sm font-medium text-slate-700" %>
+      <%= f.text_field :title,
+                       class: "block w-full rounded-xl border border-slate-300 bg-white px-4 py-3 text-slate-900 shadow-sm outline-none transition focus:border-cyan-500 focus:ring-2 focus:ring-cyan-500/20" %>
+    </div>
+
+    <div>
+      <%= f.label :youtube_channel_id, "YouTube channel", class: "mb-2 block text-sm font-medium text-slate-700" %>
+      <%= f.collection_select :youtube_channel_id,
+                              youtube_channels,
+                              :id,
+                              :name,
+                              { include_blank: "No channel selected" },
+                              class: "block w-full rounded-xl border border-slate-300 bg-white px-4 py-3 text-slate-900 shadow-sm outline-none transition focus:border-cyan-500 focus:ring-2 focus:ring-cyan-500/20" %>
+    </div>
+
+    <div>
+      <%= f.label :visibility, class: "mb-2 block text-sm font-medium text-slate-700" %>
+      <%= f.select :visibility,
+                   Stream::VISIBILITIES.map { |v| [v.titleize, v] },
+                   {},
+                   class: "block w-full rounded-xl border border-slate-300 bg-white px-4 py-3 text-slate-900 shadow-sm outline-none transition focus:border-cyan-500 focus:ring-2 focus:ring-cyan-500/20" %>
+    </div>
+
+    <div>
+      <%= f.label :scheduled_at, "Scheduled time", class: "mb-2 block text-sm font-medium text-slate-700" %>
+      <%= f.datetime_local_field :scheduled_at,
+                                 class: "block w-full rounded-xl border border-slate-300 bg-white px-4 py-3 text-slate-900 shadow-sm outline-none transition focus:border-cyan-500 focus:ring-2 focus:ring-cyan-500/20" %>
+    </div>
+  </div>
+
+  <div>
+    <%= f.label :description, class: "mb-2 block text-sm font-medium text-slate-700" %>
+    <%= f.text_area :description,
+                    rows: 6,
+                    class: "block w-full rounded-2xl border border-slate-300 bg-white px-4 py-3 text-slate-900 shadow-sm outline-none transition focus:border-cyan-500 focus:ring-2 focus:ring-cyan-500/20" %>
+  </div>
+
+  <div>
+    <%= f.label :notes, class: "mb-2 block text-sm font-medium text-slate-700" %>
+    <%= f.text_area :notes,
+                    rows: 4,
+                    class: "block w-full rounded-2xl border border-slate-300 bg-white px-4 py-3 text-slate-900 shadow-sm outline-none transition focus:border-cyan-500 focus:ring-2 focus:ring-cyan-500/20" %>
+  </div>
+
+  <div class="flex items-center justify-end gap-3 border-t border-slate-200 pt-6">
+    <button
+      type="button"
+      class="rounded-xl border border-slate-300 bg-white px-5 py-3 text-sm font-medium text-slate-700 transition hover:bg-slate-50 hover:text-slate-900"
+      data-action="click->modal#close"
+    >
+      Cancel
+    </button>
+
+    <%= f.submit "Save changes",
+                 class: "rounded-xl bg-cyan-500 px-5 py-3 text-sm font-semibold text-slate-950 shadow-lg shadow-cyan-500/20 transition hover:bg-cyan-400 focus:outline-none focus:ring-2 focus:ring-cyan-400 focus:ring-offset-2 focus:ring-offset-white" %>
+  </div>
+<% end %>
