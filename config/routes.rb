@@ -34,6 +34,8 @@ Rails.application.routes.draw do
       member do
         get :review
         patch :confirm
+        get :processing
+        get :status
       end
     end
   end

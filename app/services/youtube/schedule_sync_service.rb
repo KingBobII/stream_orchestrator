@@ -1,4 +1,3 @@
-# app/services/youtube/schedule_sync_service.rb
 module Youtube
   class ScheduleSyncService
     def initialize(youtube_channel:)
