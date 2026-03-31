@@ -9,41 +9,32 @@ class Admin::ScheduleImportsController < Admin::BaseController
     uploaded_pdf = schedule_import_params[:pdf]
 
     @schedule_import = ScheduleImport.new(
-      schedule_date: schedule_import_params[:schedule_date]
+      schedule_date: schedule_import_params[:schedule_date],
+      status: "pending",
+      ai_status: "pending"
     )
 
     @schedule_import.pdf.attach(uploaded_pdf)
 
-    parsed = ScheduleImports::PdfParser.new(uploaded_pdf.tempfile).call
-    Rails.logger.info("Parsed schedule rows: #{parsed[:parsed_streams].size}")
-
-    cleaned_streams = ScheduleImports::AiCleaner.call(parsed[:parsed_streams])
-    Rails.logger.info("AI cleaned rows: #{cleaned_streams.inspect}")
-
-    cleaned_streams = normalize_rows_with_scheduled_at(cleaned_streams)
-
-    @schedule_import.raw_text = parsed[:raw_text]
-    @schedule_import.parsed_streams = parsed[:parsed_streams]
-    @schedule_import.cleaned_streams = cleaned_streams
-    @schedule_import.status = parsed[:parsed_streams].any? ? "parsed" : "failed"
-    @schedule_import.ai_status = cleaned_streams.any? ? "completed" : "failed"
-    @schedule_import.ai_model = ENV.fetch("OPENAI_CLEANUP_MODEL", "gpt-4o-mini")
-    @schedule_import.ai_processed_at = Time.current
-
     if @schedule_import.save
-      redirect_to admin_schedule_import_path(@schedule_import),
-                  notice: "PDF parsed and cleaned successfully. Review the cleaned streams."
+
+      ScheduleImports::ProcessPdfJob.perform_later(@schedule_import.id)
+
+     
+      redirect_to processing_admin_schedule_import_path(@schedule_import),
+                  notice: "Schedule upload started. Processing in progress..."
     else
       render :new, status: :unprocessable_content
     end
+
   rescue StandardError => e
     Rails.logger.error(e.full_message)
 
     @schedule_import ||= ScheduleImport.new(schedule_date: schedule_import_params[:schedule_date])
     @schedule_import.errors.add(:base, e.message)
+
     render :new, status: :unprocessable_content
   end
-
   def show
     load_review_data
   end
@@ -110,6 +101,19 @@ class Admin::ScheduleImportsController < Admin::BaseController
     render :show, status: :unprocessable_content
   end
 
+
+  def processing
+    @schedule_import = ScheduleImport.find(params[:id])
+  end
+
+  def status
+    schedule_import = ScheduleImport.find(params[:id])
+
+    render json: {
+      status: schedule_import.status,
+      ai_status: schedule_import.ai_status
+    }
+  end
   private
 
   def set_schedule_import

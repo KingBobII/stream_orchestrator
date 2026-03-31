@@ -28,6 +28,7 @@
         <%= form_with model: @schedule_import,
                       url: admin_schedule_imports_path,
                       local: true,
+                      data: { turbo: false },
                       multipart: true,
                       class: "space-y-6" do |f| %>
 
