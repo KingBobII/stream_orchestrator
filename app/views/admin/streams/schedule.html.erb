@@ -1,60 +1,137 @@
 <div class="mx-auto max-w-7xl px-4 py-8 sm:px-6 lg:px-8">
-  <div class="mb-6 flex items-center justify-between">
-    <div>
-      <h1 class="text-3xl font-semibold tracking-tight text-slate-900">Schedule</h1>
-      <p class="mt-2 text-sm text-slate-600">
-        Final synced schedule pulled from your imported streams and YouTube data.
+  <% total_streams = @streams.respond_to?(:total_count) ? @streams.total_count : @streams.size %>
+  <% upcoming_streams = @streams.select { |stream| stream.scheduled_at_local.present? && stream.scheduled_at_local >= Time.current } %>
+
+  <div class="mb-8 flex flex-col gap-4 lg:flex-row lg:items-end lg:justify-between">
+    <div class="max-w-2xl">
+      <div class="mb-3 inline-flex items-center rounded-full border border-slate-200 bg-slate-50 px-3 py-1 text-xs font-medium text-slate-600">
+        Final synced schedule
+      </div>
+      <h1 class="text-3xl font-semibold tracking-tight text-slate-900 sm:text-4xl">Schedule</h1>
+      <p class="mt-2 text-sm leading-6 text-slate-600">
+        Final synced schedule pulled from imported streams and YouTube data.
       </p>
     </div>
 
-    <%= link_to "Back to streams",
-                admin_streams_path,
-                class: "inline-flex items-center justify-center rounded-xl border border-slate-200 bg-white px-5 py-3 text-sm font-semibold text-slate-800 shadow-sm transition hover:bg-slate-50" %>
+    <div class="flex flex-wrap gap-3">
+      <%= link_to "Back to streams",
+                  admin_streams_path,
+                  class: "inline-flex items-center justify-center rounded-xl border border-slate-200 bg-white px-5 py-3 text-sm font-semibold text-slate-800 shadow-sm transition hover:bg-slate-50" %>
+    </div>
+  </div>
+
+  <div class="mb-6 grid gap-4 sm:grid-cols-2 xl:grid-cols-2">
+    <div class="rounded-3xl border border-slate-200 bg-white p-5 shadow-sm">
+      <p class="text-xs font-semibold uppercase tracking-wide text-slate-500">Total streams</p>
+      <p class="mt-2 text-3xl font-semibold tracking-tight text-slate-900"><%= total_streams %></p>
+    </div>
+
+    <div class="rounded-3xl border border-slate-200 bg-white p-5 shadow-sm">
+      <p class="text-xs font-semibold uppercase tracking-wide text-slate-500">Upcoming</p>
+      <p class="mt-2 text-3xl font-semibold tracking-tight text-slate-900"><%= upcoming_streams.size %></p>
+    </div>
   </div>
 
   <div class="overflow-hidden rounded-3xl border border-slate-200 bg-white shadow-sm">
-    <div class="overflow-x-auto">
-      <table class="min-w-full divide-y divide-slate-200">
-        <thead class="bg-slate-50">
-          <tr>
-            <th class="px-6 py-3 text-left text-xs font-semibold uppercase tracking-wide text-slate-500">Start</th>
-            <th class="px-6 py-3 text-left text-xs font-semibold uppercase tracking-wide text-slate-500">Title</th>
-            <th class="px-6 py-3 text-left text-xs font-semibold uppercase tracking-wide text-slate-500">Description</th>
-            <th class="px-6 py-3 text-left text-xs font-semibold uppercase tracking-wide text-slate-500">Venue / Virtual</th>
-            <th class="px-6 py-3 text-left text-xs font-semibold uppercase tracking-wide text-slate-500">Stream Key</th>
-            <th class="px-6 py-3 text-left text-xs font-semibold uppercase tracking-wide text-slate-500">Ingestion URL</th>
-            <th class="px-6 py-3 text-left text-xs font-semibold uppercase tracking-wide text-slate-500">Watch URL</th>
-          </tr>
-        </thead>
-        <tbody class="divide-y divide-slate-100 bg-white">
-          <% @streams.each do |stream| %>
-            <tr class="hover:bg-slate-50/80">
-              <td class="whitespace-nowrap px-6 py-4 text-sm text-slate-700">
-                <%= stream.scheduled_at_local&.strftime("%b %d, %H:%M") || "—" %>
-              </td>
-              <td class="px-6 py-4 text-sm font-medium text-slate-900">
-                <%= stream.title %>
-              </td>
-              <td class="px-6 py-4 text-sm text-slate-700">
-                <%= stream.description.presence || "—" %>
-              </td>
-              <td class="whitespace-nowrap px-6 py-4 text-sm text-slate-700">
-                <%= stream.venue_display_name %>
-              </td>
-              <td class="whitespace-nowrap px-6 py-4 font-mono text-xs text-slate-700">
-                <%= stream.youtube_stream_key.presence || "—" %>
-              </td>
-              <td class="px-6 py-4 font-mono text-xs text-slate-700 break-all">
-                <%= stream.youtube_rtmp_url.presence || "—" %>
-              </td>
-              <td class="px-6 py-4 text-sm text-slate-700 break-all">
-                <%= stream.watch_url.presence || "—" %>
-              </td>
+    <% if @streams.any? %>
+      <div class="overflow-x-auto">
+        <table class="min-w-full divide-y divide-slate-200">
+          <thead class="bg-slate-50">
+            <tr>
+              <th class="px-6 py-4 text-left text-xs font-semibold uppercase tracking-wide text-slate-500">Start</th>
+              <th class="px-6 py-4 text-left text-xs font-semibold uppercase tracking-wide text-slate-500">Title</th>
+              <th class="px-6 py-4 text-left text-xs font-semibold uppercase tracking-wide text-slate-500">Description</th>
+              <th class="px-6 py-4 text-left text-xs font-semibold uppercase tracking-wide text-slate-500">Venue / Virtual</th>
+              <th class="px-6 py-4 text-left text-xs font-semibold uppercase tracking-wide text-slate-500">Stream Key</th>
+              <th class="px-6 py-4 text-left text-xs font-semibold uppercase tracking-wide text-slate-500">Ingestion URL</th>
+              <th class="px-6 py-4 text-left text-xs font-semibold uppercase tracking-wide text-slate-500">Watch URL</th>
             </tr>
-          <% end %>
-        </tbody>
-      </table>
-    </div>
+          </thead>
+
+          <tbody class="divide-y divide-slate-100 bg-white">
+            <% @streams.each do |stream| %>
+              <tr class="align-top transition hover:bg-slate-50/80">
+                <td class="whitespace-nowrap px-6 py-5 text-sm text-slate-700">
+                  <div class="font-medium text-slate-900">
+                    <%= stream.scheduled_at_local&.strftime("%b %d, %H:%M") || "—" %>
+                  </div>
+                  <% if stream.scheduled_at_local.present? %>
+                    <div class="mt-1 text-xs text-slate-500">
+                      <%= stream.scheduled_at_local.strftime("%A") %>
+                    </div>
+                  <% end %>
+                </td>
+
+                <td class="px-6 py-5">
+                  <div class="max-w-md">
+                    <p class="font-medium text-slate-900"><%= stream.title %></p>
+                    <div class="mt-2 flex flex-wrap gap-2">
+                      <span class="inline-flex items-center rounded-full bg-slate-100 px-2.5 py-1 text-xs font-medium text-slate-700">
+                        <%= stream.status.to_s.titleize %>
+                      </span>
+                      <% if stream.visibility.present? %>
+                        <span class="inline-flex items-center rounded-full bg-indigo-50 px-2.5 py-1 text-xs font-medium text-indigo-700">
+                          <%= stream.visibility.to_s.titleize %>
+                        </span>
+                      <% end %>
+                    </div>
+                  </div>
+                </td>
+
+                <td class="px-6 py-5 text-sm leading-6 text-slate-700">
+                  <div class="max-w-xl">
+                    <%= stream.description.presence || "—" %>
+                  </div>
+                </td>
+
+                <td class="whitespace-nowrap px-6 py-5 text-sm text-slate-700">
+                  <div class="max-w-xs">
+                    <div class="font-medium text-slate-900">
+                      <%= stream.venue_display_name.presence || "—" %>
+                    </div>
+                    <% if stream.venue_type.present? %>
+                      <div class="mt-1 text-xs text-slate-500">
+                        <%= stream.venue_type.to_s.titleize %>
+                      </div>
+                    <% end %>
+                  </div>
+                </td>
+
+                <td class="px-6 py-5">
+                  <div class="max-w-[18rem] break-all font-mono text-xs leading-5 text-slate-700">
+                    <%= stream.youtube_stream_key.presence || "—" %>
+                  </div>
+                </td>
+
+                <td class="px-6 py-5">
+                  <div class="max-w-[22rem] break-all font-mono text-xs leading-5 text-slate-700">
+                    <%= stream.youtube_rtmp_url.presence || "—" %>
+                  </div>
+                </td>
+
+                <td class="px-6 py-5">
+                  <div class="max-w-[22rem] break-all text-sm leading-6 text-slate-700">
+                    <%= stream.watch_url.presence || "—" %>
+                  </div>
+                </td>
+              </tr>
+            <% end %>
+          </tbody>
+        </table>
+      </div>
+    <% else %>
+      <div class="px-6 py-16 text-center">
+        <div class="mx-auto mb-4 flex h-14 w-14 items-center justify-center rounded-2xl bg-slate-100 text-slate-400">
+          <svg xmlns="http://www.w3.org/2000/svg" class="h-7 w-7" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8">
+            <path stroke-linecap="round" stroke-linejoin="round" d="M8 7V3m8 4V3m-9 8h10M5 21h14a2 2 0 0 0 2-2V7a2 2 0 0 0-2-2H5a2 2 0 0 0-2 2v12a2 2 0 0 0 2 2Z" />
+          </svg>
+        </div>
+        <h2 class="text-lg font-semibold text-slate-900">No streams found</h2>
+        <p class="mt-2 text-sm text-slate-600">
+          There are no scheduled streams to display yet.
+        </p>
+      </div>
+    <% end %>
   </div>
 
   <div class="mt-6">
