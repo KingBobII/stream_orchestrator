@@ -22,18 +22,30 @@ module Admin
       end
     end
 
+    def schedule
+      @streams = Stream.includes(:youtube_channel).with_youtube_schedule_data.page(params[:page]).per(20)
+    end
+
     def show; end
 
     def new
-      @stream = Stream.new(status: "scheduled", visibility: "private", sync_status: "pending")
+      @stream = Stream.new(
+        status: "scheduled",
+        visibility: "private",
+        sync_status: "pending",
+        venue_type: "virtual"
+      )
     end
 
     def create
-      @stream = Stream.new(stream_params.reverse_merge(
-        status: "scheduled",
-        visibility: "private",
-        sync_status: "pending"
-      ))
+      @stream = Stream.new(
+        stream_params.reverse_merge(
+          status: "scheduled",
+          visibility: "private",
+          sync_status: "pending",
+          venue_type: "virtual"
+        )
+      )
 
       if @stream.save
         queue_youtube_sync(@stream)
@@ -104,7 +116,16 @@ module Admin
     end
 
     def stream_params
-      params.require(:stream).permit(:title, :description, :status, :scheduled_at, :youtube_channel_id, :visibility)
+      params.require(:stream).permit(
+        :title,
+        :description,
+        :status,
+        :scheduled_at,
+        :youtube_channel_id,
+        :visibility,
+        :venue_type,
+        :venue_name
+      )
     end
 
     def queue_youtube_sync(stream)

@@ -1,3 +1,6 @@
+<% rows = Array(@cleaned_rows) %>
+<% raw_rows = Array(@raw_rows) %>
+
 <div class="max-w-7xl mx-auto px-4 py-8">
   <div class="mb-8">
     <h1 class="text-3xl font-bold tracking-tight text-gray-900">Review Schedule Import</h1>
@@ -30,6 +33,17 @@
     </div>
   </div>
 
+  <% if @schedule_import.errors.any? %>
+    <div class="mb-8 rounded-2xl border border-red-200 bg-red-50 p-4 text-red-800">
+      <p class="font-semibold">Please fix the following</p>
+      <ul class="mt-2 list-disc pl-5 text-sm space-y-1">
+        <% @schedule_import.errors.full_messages.each do |message| %>
+          <li><%= message %></li>
+        <% end %>
+      </ul>
+    </div>
+  <% end %>
+
   <% if @schedule_import.ai_error.present? %>
     <div class="mb-8 rounded-2xl border border-red-200 bg-red-50 p-4 text-red-800">
       <p class="font-semibold">AI error</p>
@@ -37,10 +51,11 @@
     </div>
   <% end %>
 
-  <%= form_with url: confirm_admin_schedule_import_path(@schedule_import), method: :patch, local: true do %>
+  <%= form_with url: confirm_admin_schedule_import_path(@schedule_import), method: :patch, local: true, data: { turbo: false } do %>
     <div class="space-y-6">
-      <% Array(@cleaned_rows).each_with_index do |row, index| %>
-        <% raw_row = Array(@raw_rows)[index] || {} %>
+      <% rows.each_with_index do |row, index| %>
+        <% raw_row = raw_rows[index] || {} %>
+        <% row_channel_id = row["youtube_channel_id"].presence || row[:youtube_channel_id].presence %>
 
         <div class="rounded-2xl border border-gray-200 bg-white shadow-sm overflow-hidden">
           <div class="flex items-start justify-between gap-4 border-b border-gray-100 bg-gray-50 px-5 py-4">
@@ -57,11 +72,10 @@
           </div>
 
           <div class="px-5 py-5">
-           <%= hidden_field_tag "schedule_import[rows][#{index}][raw_title]", row["raw_title"] %>
+            <%= hidden_field_tag "schedule_import[rows][#{index}][raw_title]", row["raw_title"] %>
             <%= hidden_field_tag "schedule_import[rows][#{index}][raw_description]", row["raw_description"] %>
             <%= hidden_field_tag "schedule_import[rows][#{index}][time_text]", row["time_text"] %>
             <%= hidden_field_tag "schedule_import[rows][#{index}][date_text]", row["date_text"] %>
-            <%= hidden_field_tag "schedule_import[rows][#{index}][scheduled_at]", row["scheduled_at"] %>
 
             <div class="grid gap-4 md:grid-cols-2">
               <div class="md:col-span-2">
@@ -81,9 +95,11 @@
               <div>
                 <%= label_tag nil, "YouTube channel", class: "block text-sm font-medium text-gray-700 mb-1" %>
                 <%= select_tag "schedule_import[rows][#{index}][youtube_channel_id]",
-                    options_from_collection_for_select(@youtube_channels, :id, :display_name, row["youtube_channel_id"]),
+                    options_from_collection_for_select(@youtube_channels, :id, :display_name, row_channel_id),
                     include_blank: "Select a connected YouTube channel",
+                    required: true,
                     class: "w-full rounded-xl border border-gray-300 bg-white px-3 py-2 text-gray-900 shadow-sm focus:border-black focus:outline-none focus:ring-2 focus:ring-black/10" %>
+              </div>
 
               <div class="md:col-span-2">
                 <%= label_tag nil, "Description", class: "block text-sm font-medium text-gray-700 mb-1" %>

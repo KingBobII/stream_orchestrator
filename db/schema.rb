@@ -10,7 +10,7 @@
 #
 # It's strongly recommended that you check this file into your version control system.
 
-ActiveRecord::Schema[7.1].define(version: 2026_03_26_122824) do
+ActiveRecord::Schema[7.1].define(version: 2026_03_30_213350) do
   # These are extensions that must be enabled in order to support this database
   enable_extension "plpgsql"
 
@@ -84,6 +84,12 @@ ActiveRecord::Schema[7.1].define(version: 2026_03_26_122824) do
     t.string "youtube_watch_url"
     t.string "youtube_ingestion_address"
     t.string "youtube_stream_name"
+    t.string "venue_type", default: "virtual", null: false
+    t.string "venue_name"
+    t.text "youtube_backup_ingestion_address"
+    t.text "youtube_rtmps_ingestion_address"
+    t.text "youtube_rtmps_backup_ingestion_address"
+    t.datetime "youtube_synced_at"
     t.index ["schedule_import_id"], name: "index_streams_on_schedule_import_id"
     t.index ["scheduled_at"], name: "index_streams_on_scheduled_at"
     t.index ["status"], name: "index_streams_on_status"

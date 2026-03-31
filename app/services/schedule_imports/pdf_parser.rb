@@ -1,4 +1,3 @@
-# app/services/schedule_imports/pdf_parser.rb
 require "pdf-reader"
 
 module ScheduleImports
