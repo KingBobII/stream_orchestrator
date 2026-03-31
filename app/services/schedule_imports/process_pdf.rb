@@ -1,3 +1,5 @@
+require "stringio"
+
 module ScheduleImports
   class ProcessPdf
     def self.call(schedule_import)
@@ -11,9 +13,7 @@ module ScheduleImports
     def call
       @schedule_import.update!(ai_status: "processing", ai_error: nil)
 
-      parsed_result = ScheduleImports::PDFParser.call(
-        pdf_bytes: @schedule_import.pdf.download
-      )
+      parsed_result = ScheduleImports::PdfParser.new(StringIO.new(@schedule_import.pdf.download)).call
 
       raw_text = parsed_result[:raw_text]
       parsed_streams = parsed_result[:parsed_streams] || []

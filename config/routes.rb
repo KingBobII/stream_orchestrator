@@ -24,7 +24,9 @@ Rails.application.routes.draw do
       end
 
       collection do
+        get :schedule
         post :sync_pending_to_youtube
+        post :sync_youtube_schedule
       end
     end
 

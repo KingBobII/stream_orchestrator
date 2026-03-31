@@ -1,4 +1,6 @@
 class Admin::ScheduleImportsController < Admin::BaseController
+  before_action :set_schedule_import, only: %i[show confirm]
+
   def new
     @schedule_import = ScheduleImport.new
   end
@@ -18,6 +20,8 @@ class Admin::ScheduleImportsController < Admin::BaseController
     cleaned_streams = ScheduleImports::AiCleaner.call(parsed[:parsed_streams])
     Rails.logger.info("AI cleaned rows: #{cleaned_streams.inspect}")
 
+    cleaned_streams = normalize_rows_with_scheduled_at(cleaned_streams)
+
     @schedule_import.raw_text = parsed[:raw_text]
     @schedule_import.parsed_streams = parsed[:parsed_streams]
     @schedule_import.cleaned_streams = cleaned_streams
@@ -27,7 +31,8 @@ class Admin::ScheduleImportsController < Admin::BaseController
     @schedule_import.ai_processed_at = Time.current
 
     if @schedule_import.save
-      redirect_to admin_schedule_import_path(@schedule_import), notice: "PDF parsed and cleaned successfully. Review the cleaned streams."
+      redirect_to admin_schedule_import_path(@schedule_import),
+                  notice: "PDF parsed and cleaned successfully. Review the cleaned streams."
     else
       render :new, status: :unprocessable_content
     end
@@ -40,59 +45,62 @@ class Admin::ScheduleImportsController < Admin::BaseController
   end
 
   def show
-    @schedule_import = ScheduleImport.find(params[:id])
-    @youtube_channels = YoutubeChannel.available_for_streams
-    @raw_rows = @schedule_import.parsed_rows_for_review
-    @cleaned_rows = @schedule_import.cleaned_rows_for_review
+    load_review_data
   end
 
   def confirm
-    @schedule_import = ScheduleImport.find(params[:id])
-    @youtube_channels = YoutubeChannel.available_for_streams
-    @raw_rows = @schedule_import.parsed_rows_for_review
-    @cleaned_rows = @schedule_import.cleaned_rows_for_review
+    load_review_data
 
     rows = confirm_params.fetch(:rows, {}).to_h
+    entries = rows.sort_by { |index, _| index.to_i }.map { |_, value| value.to_h }
+    entries = normalize_rows_with_scheduled_at(entries)
 
-    entries = rows
-      .sort_by { |index, _| index.to_i }
-      .map { |_, value| value.to_h }
+    if entries.empty?
+      @schedule_import.errors.add(:base, "No rows were submitted.")
+      render :show, status: :unprocessable_content and return
+    end
 
     created_streams = []
 
     Stream.transaction do
-      entries.each do |entry|
-        youtube_channel_id = entry[:youtube_channel_id].presence || entry["youtube_channel_id"]
+      entries.each_with_index do |entry, index|
+        youtube_channel_id = entry["youtube_channel_id"].presence || entry[:youtube_channel_id].presence
         youtube_channel = @youtube_channels.find_by(id: youtube_channel_id)
 
-        unless youtube_channel
-          raise ActiveRecord::RecordInvalid.new(Stream.new), "Please select a connected YouTube channel for every stream."
+        unless youtube_channel&.connected? &&
+               youtube_channel.status == "active" &&
+               youtube_channel.external_id.present?
+          @schedule_import.errors.add(:base, "Item #{index + 1}: please select a connected YouTube channel.")
+          raise ActiveRecord::Rollback
         end
 
-        scheduled_at = parse_scheduled_at(entry)
-
-        created_streams << Stream.create!(
-          title: entry[:title].presence || entry["title"],
-          description: entry[:description].presence || entry["description"],
-          status: "scheduled",
-          visibility: entry[:visibility].presence || entry["visibility"] || "public",
-          scheduled_at: scheduled_at,
-          youtube_channel_id: youtube_channel.id,
-          schedule_import: @schedule_import,
-          sync_status: "pending"
+        created_streams.concat(
+          Array(
+            ScheduleImports::StreamCreator.call(
+              rows: [entry],
+              schedule_import: @schedule_import,
+              youtube_channel: youtube_channel
+            )
+          )
         )
       end
 
-      @schedule_import.update!(status: "completed")
+      @schedule_import.update!(status: "completed") if @schedule_import.errors.empty?
+    end
+
+    if @schedule_import.errors.any?
+      render :show, status: :unprocessable_content and return
     end
 
     created_streams.each do |stream|
-      stream.update!(sync_status: "ready")
+      next unless stream.syncable_to_youtube?
+
       Youtube::SyncStreamJob.perform_later(stream.id)
     end
 
     redirect_to admin_streams_path(import_id: @schedule_import.id),
-                notice: "#{created_streams.count} streams created."
+                notice: "#{created_streams.count} stream(s) created and queued for YouTube sync.",
+                status: :see_other
   rescue ActiveRecord::RecordInvalid => e
     @schedule_import.errors.add(:base, e.record.errors.full_messages.to_sentence.presence || e.message)
     render :show, status: :unprocessable_content
@@ -103,6 +111,33 @@ class Admin::ScheduleImportsController < Admin::BaseController
   end
 
   private
+
+  def set_schedule_import
+    @schedule_import = ScheduleImport.find(params[:id])
+  end
+
+  def load_review_data
+    @youtube_channels = YoutubeChannel.available_for_streams
+    @raw_rows = Array(@schedule_import.parsed_rows_for_review)
+    @cleaned_rows = normalize_rows_with_scheduled_at(Array(@schedule_import.cleaned_rows_for_review))
+  end
+
+  def normalize_rows_with_scheduled_at(rows)
+    Array(rows).map.with_index do |row, index|
+      row = row.deep_stringify_keys
+      row["index"] ||= index + 1
+
+      current_value = row["scheduled_at"]
+      row["scheduled_at"] =
+        if current_value.respond_to?(:strftime)
+          current_value.strftime("%Y-%m-%d %H:%M")
+        else
+          current_value.presence || parse_scheduled_at(row)
+        end
+
+      row
+    end
+  end
 
   def schedule_import_params
     params.require(:schedule_import).permit(:pdf, :schedule_date)
@@ -122,20 +157,21 @@ class Admin::ScheduleImportsController < Admin::BaseController
   def parse_scheduled_at(entry)
     date_part =
       @schedule_import.schedule_date.presence ||
-      entry[:date_text].presence ||
-      entry["date_text"].presence
+      entry["date_text"].presence ||
+      entry[:date_text].presence
 
     time_part =
-      entry[:start_time].presence ||
-      entry["start_time"].presence ||
+      entry["scheduled_at"].presence ||
+      entry[:scheduled_at].presence ||
+      entry["time_text"].presence ||
       entry[:time_text].presence ||
-      entry["time_text"].presence
+      entry["start_time"].presence ||
+      entry[:start_time].presence
 
     return nil if date_part.blank? || time_part.blank?
 
     time_part = time_part.to_s.split(" - ").first.strip
-
-    Time.zone.parse("#{date_part} #{time_part}")
+    Time.zone.parse("#{date_part} #{time_part}")&.strftime("%Y-%m-%d %H:%M")
   rescue ArgumentError, TypeError
     nil
   end
