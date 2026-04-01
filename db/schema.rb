@@ -10,7 +10,7 @@
 #
 # It's strongly recommended that you check this file into your version control system.
 
-ActiveRecord::Schema[7.1].define(version: 2026_03_30_213350) do
+ActiveRecord::Schema[7.1].define(version: 2026_03_31_134028) do
   # These are extensions that must be enabled in order to support this database
   enable_extension "plpgsql"
 
@@ -114,9 +114,11 @@ ActiveRecord::Schema[7.1].define(version: 2026_03_30_213350) do
     t.string "reset_password_token"
     t.datetime "reset_password_sent_at"
     t.datetime "remember_created_at"
+    t.string "stream_access_key"
     t.index ["email"], name: "index_users_on_email", unique: true
     t.index ["provider"], name: "index_users_on_provider"
     t.index ["reset_password_token"], name: "index_users_on_reset_password_token", unique: true
+    t.index ["stream_access_key"], name: "index_users_on_stream_access_key"
     t.index ["uid"], name: "index_users_on_uid"
   end
 
@@ -143,9 +145,11 @@ ActiveRecord::Schema[7.1].define(version: 2026_03_30_213350) do
     t.datetime "last_synced_at"
     t.datetime "connected_at"
     t.text "sync_error"
+    t.string "stream_access_key"
     t.index ["external_id"], name: "index_youtube_channels_on_external_id", unique: true
     t.index ["name"], name: "index_youtube_channels_on_name"
     t.index ["owner_id"], name: "index_youtube_channels_on_owner_id"
+    t.index ["stream_access_key"], name: "index_youtube_channels_on_stream_access_key"
   end
 
   add_foreign_key "active_storage_attachments", "active_storage_blobs", column: "blob_id"

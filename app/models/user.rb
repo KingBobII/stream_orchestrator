@@ -10,8 +10,10 @@ class User < ApplicationRecord
   ROLES = %w[admin stream_operator production_operator].freeze
 
   validates :role, presence: true, inclusion: { in: ROLES }
+  validates :stream_access_key, presence: true
 
   before_validation :set_default_role, on: :create
+  before_validation :ensure_stream_access_key, on: :create
 
   scope :admins, -> { where(role: "admin") }
   scope :stream_operators, -> { where(role: "stream_operator") }
@@ -52,5 +54,9 @@ class User < ApplicationRecord
 
   def set_default_role
     self.role ||= "stream_operator"
+  end
+
+  def ensure_stream_access_key
+    self.stream_access_key ||= SecureRandom.hex(12)
   end
 end

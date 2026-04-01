@@ -8,7 +8,6 @@ module Admin
     private
 
     def authorize_admin!
-      # keep your existing authorization logic here, e.g.
       redirect_to root_path, alert: "Unauthorized" unless current_user&.admin?
     end
   end

@@ -1,0 +1,76 @@
+<div class="mx-auto max-w-5xl px-4 py-8 sm:px-6 lg:px-8">
+  <div class="mb-6 flex items-center justify-between">
+    <div>
+      <p class="text-sm font-medium uppercase tracking-wide text-gray-500">Stream Details</p>
+      <h1 class="mt-1 text-3xl font-bold text-gray-900"><%= @stream.title %></h1>
+      <p class="mt-2 text-sm text-gray-600">
+        Full schedule and ingest details for this stream.
+      </p>
+    </div>
+
+    <%= link_to "Back to Schedule", stream_operator_streams_path,
+                class: "rounded-lg border border-gray-300 px-4 py-2 text-sm font-medium text-gray-700 hover:bg-gray-50" %>
+  </div>
+
+  <div class="grid gap-6 lg:grid-cols-2">
+    <div class="rounded-2xl border border-gray-200 bg-white p-6 shadow-sm">
+      <h2 class="text-lg font-semibold text-gray-900">Stream info</h2>
+      <dl class="mt-4 space-y-4">
+        <div>
+          <dt class="text-sm font-medium text-gray-500">Channel</dt>
+          <dd class="mt-1 text-sm text-gray-900"><%= @stream.youtube_channel&.name || "Unassigned" %></dd>
+        </div>
+
+        <div>
+          <dt class="text-sm font-medium text-gray-500">Scheduled start</dt>
+          <dd class="mt-1 text-sm text-gray-900"><%= format_stream_datetime(stream_start_time(@stream)) %></dd>
+        </div>
+
+        <% if stream_end_time(@stream).present? %>
+          <div>
+            <dt class="text-sm font-medium text-gray-500">Scheduled end</dt>
+            <dd class="mt-1 text-sm text-gray-900"><%= format_stream_datetime(stream_end_time(@stream)) %></dd>
+          </div>
+        <% end %>
+
+        <div>
+          <dt class="text-sm font-medium text-gray-500">Status</dt>
+          <dd class="mt-1 text-sm text-gray-900"><%= @stream.respond_to?(:status) ? @stream.status.to_s.titleize : "Unknown" %></dd>
+        </div>
+
+        <div>
+          <dt class="text-sm font-medium text-gray-500">Visibility</dt>
+          <dd class="mt-1 text-sm text-gray-900"><%= @stream.respond_to?(:visibility) ? @stream.visibility.to_s.titleize : "Unknown" %></dd>
+        </div>
+      </dl>
+    </div>
+
+    <div class="rounded-2xl border border-gray-200 bg-white p-6 shadow-sm">
+      <h2 class="text-lg font-semibold text-gray-900">Ingest details</h2>
+      <div class="mt-4 space-y-5">
+        <div>
+          <p class="text-sm font-medium text-gray-500">Stream key</p>
+          <div class="mt-1 break-all rounded-xl bg-gray-100 px-4 py-3 font-mono text-sm text-gray-900">
+            <%= stream_key_value(@stream) %>
+          </div>
+        </div>
+
+        <div>
+          <p class="text-sm font-medium text-gray-500">Stream URL</p>
+          <div class="mt-1 break-all rounded-xl bg-gray-100 px-4 py-3 font-mono text-sm text-gray-900">
+            <%= stream_url_value(@stream) %>
+          </div>
+        </div>
+
+        <% if @stream.respond_to?(:backup_stream_key) && @stream.backup_stream_key.present? %>
+          <div>
+            <p class="text-sm font-medium text-gray-500">Backup stream key</p>
+            <div class="mt-1 break-all rounded-xl bg-gray-100 px-4 py-3 font-mono text-sm text-gray-900">
+              <%= @stream.backup_stream_key %>
+            </div>
+          </div>
+        <% end %>
+      </div>
+    </div>
+  </div>
+</div>
