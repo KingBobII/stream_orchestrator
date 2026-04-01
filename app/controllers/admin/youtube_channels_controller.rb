@@ -13,7 +13,13 @@ module Admin
     end
 
     def create
-      @youtube_channel = YoutubeChannel.new(youtube_channel_params)
+      @youtube_channel = YoutubeChannel.new(
+        youtube_channel_params.merge(
+          owner: current_user,
+          stream_access_key: current_user.stream_access_key,
+          status: youtube_channel_params[:status].presence || "active"
+        )
+      )
 
       if @youtube_channel.save
         redirect_to admin_youtube_channel_path(@youtube_channel), notice: "Channel created"
@@ -67,7 +73,7 @@ module Admin
     end
 
     def youtube_channel_params
-      params.require(:youtube_channel).permit(:name, :external_id, :owner_id, :description)
+      params.require(:youtube_channel).permit(:name, :external_id, :description, :status)
     end
   end
 end

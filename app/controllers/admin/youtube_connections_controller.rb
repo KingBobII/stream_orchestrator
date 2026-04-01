@@ -43,6 +43,7 @@ module Admin
         name: channel_data.dig("snippet", "title"),
         description: channel_data.dig("snippet", "description"),
         owner_id: user.id,
+        stream_access_key: user.stream_access_key,
         oauth_access_token: token_data["access_token"],
         oauth_refresh_token: token_data["refresh_token"].presence || channel.oauth_refresh_token,
         oauth_expires_at: token_data["expires_in"].present? ? Time.current + token_data["expires_in"].to_i.seconds : channel.oauth_expires_at,

@@ -1,25 +1,28 @@
 <!DOCTYPE html>
-<html class="h-full bg-gray-100">
-<head>
-  <title>Stream operator</title>
-  <%= csrf_meta_tags %>
-  <%= csp_meta_tag %>
-  <%= stylesheet_link_tag "tailwind", "data-turbo-track": "reload" %>
-   <%= javascript_importmap_tags %>
-</head>
-<body class="h-full">
-  <%= render "shared/topnav" %>
+<html class="h-full bg-gray-100" lang="en">
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width,initial-scale=1" />
+    <title><%= content_for?(:title) ? yield(:title) : "Stream Orchestrator" %></title>
+    <%= csrf_meta_tags %>
+    <%= csp_meta_tag %>
+    <%= stylesheet_link_tag "tailwind", "data-turbo-track": "reload" %>
+    <%= javascript_importmap_tags %>
+  </head>
 
-  <header class="relative bg-white shadow-sm">
-    <div class="mx-auto max-w-7xl px-4 py-6 sm:px-6 lg:px-8">
-      <h1 class="text-3xl font-bold tracking-tight text-gray-900">Stream operator dashboard</h1>
-    </div>
-  </header>
+  <body class="min-h-full bg-gray-100">
+    <%= render "shared/topnav" %>
 
-  <main>
-    <div class="mx-auto max-w-7xl px-4 py-6 sm:px-6 lg:px-8">
-      <%= yield %>
-    </div>
-  </main>
-</body>
+    <header class="relative bg-white shadow-sm">
+      <div class="mx-auto max-w-7xl px-4 py-6 sm:px-6 lg:px-8">
+        <h1 class="text-3xl font-bold tracking-tight text-gray-900">Stream operator dashboard</h1>
+      </div>
+    </header>
+
+    <main>
+      <div class="mx-auto max-w-7xl px-4 py-6 sm:px-6 lg:px-8">
+        <%= yield %>
+      </div>
+    </main>
+  </body>
 </html>

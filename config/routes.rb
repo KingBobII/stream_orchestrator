@@ -42,8 +42,8 @@ Rails.application.routes.draw do
 
   namespace :stream_operator do
     get "dashboard", to: "dashboard#index", as: :dashboard
-    resources :youtube_channels, only: %i[index show new create edit update destroy]
-    resources :streams, only: %i[index show new create edit update destroy]
+    resources :youtube_channels, only: %i[index show]
+    resources :streams, only: %i[index show]
   end
 
   namespace :production_operator do

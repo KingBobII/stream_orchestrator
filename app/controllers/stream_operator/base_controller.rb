@@ -1,29 +1,16 @@
-# # app/controllers/stream_operator/application_controller.rb
-# module StreamOperator
-#   class ApplicationController < ::ApplicationController
-#     before_action :authenticate_user!
-#     before_action :require_stream_operator!
-#     layout "stream_operator"
-#   end
-# end
-# module StreamOperator
-#   class ApplicationController < ::ApplicationController
-#     before_action :authenticate_user!
-#     before_action :authorize_stream_operator!
-#     layout "stream_operator"
-#   end
-# end
 module StreamOperator
-  class BaseController < ::ApplicationController
+  class BaseController < ApplicationController
     layout "stream_operator"
 
     before_action :authenticate_user!
-    before_action :authorize_stream_operator!
+    before_action :ensure_stream_operator!
 
     private
 
-    def authorize_stream_operator!
-      redirect_to root_path, alert: "Unauthorized" unless current_user&.stream_operator?
+    def ensure_stream_operator!
+      return if current_user&.stream_operator?
+
+      redirect_to root_path, alert: "You are not authorized to access that page."
     end
   end
 end
