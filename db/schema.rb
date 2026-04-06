@@ -10,7 +10,7 @@
 #
 # It's strongly recommended that you check this file into your version control system.
 
-ActiveRecord::Schema[7.1].define(version: 2026_03_31_134028) do
+ActiveRecord::Schema[7.1].define(version: 2026_04_01_221024) do
   # These are extensions that must be enabled in order to support this database
   enable_extension "plpgsql"
 
@@ -90,8 +90,11 @@ ActiveRecord::Schema[7.1].define(version: 2026_03_31_134028) do
     t.text "youtube_rtmps_ingestion_address"
     t.text "youtube_rtmps_backup_ingestion_address"
     t.datetime "youtube_synced_at"
+    t.string "stream_kind", default: "public", null: false
+    t.bigint "source_stream_id"
     t.index ["schedule_import_id"], name: "index_streams_on_schedule_import_id"
     t.index ["scheduled_at"], name: "index_streams_on_scheduled_at"
+    t.index ["source_stream_id"], name: "index_streams_on_source_stream_id", unique: true
     t.index ["status"], name: "index_streams_on_status"
     t.index ["sync_status"], name: "index_streams_on_sync_status"
     t.index ["synced_at"], name: "index_streams_on_synced_at"
@@ -155,6 +158,7 @@ ActiveRecord::Schema[7.1].define(version: 2026_03_31_134028) do
   add_foreign_key "active_storage_attachments", "active_storage_blobs", column: "blob_id"
   add_foreign_key "active_storage_variant_records", "active_storage_blobs", column: "blob_id"
   add_foreign_key "streams", "schedule_imports"
+  add_foreign_key "streams", "streams", column: "source_stream_id", on_delete: :nullify
   add_foreign_key "streams", "youtube_channels"
   add_foreign_key "youtube_channels", "users", column: "owner_id"
 end
