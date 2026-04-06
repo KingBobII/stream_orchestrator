@@ -1,3 +1,157 @@
+<%# rows = Array(@cleaned_rows) %>
+<%# raw_rows = Array(@raw_rows) %>
+<!--
+<div class="max-w-7xl mx-auto px-4 py-8">
+  <div class="mb-8">
+    <h1 class="text-3xl font-bold tracking-tight text-gray-900">Review Schedule Import</h1>
+    <p class="mt-2 text-sm text-gray-600">
+      Review the AI-cleaned items below, make any final edits, choose a YouTube channel for each stream, then create the streams.
+    </p>
+  </div>
+
+  <div class="grid gap-4 md:grid-cols-4 mb-8">
+    <div class="rounded-2xl border border-gray-200 bg-white p-4 shadow-sm">
+      <p class="text-xs font-medium uppercase tracking-wide text-gray-500">Status</p>
+      <p class="mt-1 text-sm font-semibold text-gray-900"><%#= @schedule_import.status.titleize %></p>
+    </div>
+
+    <div class="rounded-2xl border border-gray-200 bg-white p-4 shadow-sm">
+      <p class="text-xs font-medium uppercase tracking-wide text-gray-500">AI status</p>
+      <p class="mt-1 text-sm font-semibold text-gray-900"><%#= @schedule_import.ai_status.titleize %></p>
+    </div>
+
+    <div class="rounded-2xl border border-gray-200 bg-white p-4 shadow-sm">
+      <p class="text-xs font-medium uppercase tracking-wide text-gray-500">AI model</p>
+      <p class="mt-1 text-sm font-semibold text-gray-900"><%#= @schedule_import.ai_model.presence || "—" %></p>
+    </div>
+
+    <div class="rounded-2xl border border-gray-200 bg-white p-4 shadow-sm">
+      <p class="text-xs font-medium uppercase tracking-wide text-gray-500">Processed at</p>
+      <p class="mt-1 text-sm font-semibold text-gray-900">
+        <%#= @schedule_import.ai_processed_at.present? ? l(@schedule_import.ai_processed_at, format: :short) : "—" %>-->
+<!--      </p>
+    </div>
+  </div>
+
+  <%# if @schedule_import.errors.any? %>-->
+<!--    <div class="mb-8 rounded-2xl border border-red-200 bg-red-50 p-4 text-red-800">
+      <p class="font-semibold">Please fix the following</p>
+      <ul class="mt-2 list-disc pl-5 text-sm space-y-1">
+        <%# @schedule_import.errors.full_messages.each do |message| %>-->
+<!--          <li><%#= message %></li>-->
+        <%# end %>
+<!--      </ul>
+    </div>
+  <%# end %>-->
+<!---->
+  <%# if @schedule_import.ai_error.present? %>
+<!--    <div class="mb-8 rounded-2xl border border-red-200 bg-red-50 p-4 text-red-800">
+      <p class="font-semibold">AI error</p>
+      <p class="mt-1 text-sm"><%#= @schedule_import.ai_error %></p>
+    </div>
+  <%# end %>-->
+<!---->
+  <%#= form_with url: confirm_admin_schedule_import_path(@schedule_import), method: :patch, local: true, data: { turbo: false } do %>
+<!--    <div class="space-y-6">-->
+      <%# rows.each_with_index do |row, index| %>
+        <%# raw_row = raw_rows[index] || {} %>
+        <%# row_channel_id = row["youtube_channel_id"].presence || row[:youtube_channel_id].presence %>
+<!--
+        <div class="rounded-2xl border border-gray-200 bg-white shadow-sm overflow-hidden">
+          <div class="flex items-start justify-between gap-4 border-b border-gray-100 bg-gray-50 px-5 py-4">
+            <div>
+              <h2 class="text-base font-semibold text-gray-900">Item <%#= index + 1 %></h2>
+              <p class="mt-1 text-sm text-gray-600">
+                Review the cleaned title and description before creating the stream.
+              </p>
+            </div>
+
+            <span class="inline-flex items-center rounded-full bg-emerald-100 px-3 py-1 text-xs font-medium text-emerald-700">
+              AI cleaned
+            </span>
+          </div>
+
+          <div class="px-5 py-5">
+            <%#= hidden_field_tag "schedule_import[rows][#{index}][raw_title]", row["raw_title"] %>-->
+            <%#= hidden_field_tag "schedule_import[rows][#{index}][raw_description]", row["raw_description"] %>
+            <%#= hidden_field_tag "schedule_import[rows][#{index}][time_text]", row["time_text"] %>
+            <%#= hidden_field_tag "schedule_import[rows][#{index}][date_text]", row["date_text"] %>
+<!--
+            <div class="grid gap-4 md:grid-cols-2">
+              <div class="md:col-span-2">
+                <%#= label_tag nil, "Title", class: "block text-sm font-medium text-gray-700 mb-1" %>-->
+                <%#= text_field_tag "schedule_import[rows][#{index}][title]",
+                    row["title"],
+                    class: "w-full rounded-xl border border-gray-300 bg-white px-3 py-2 text-gray-900 shadow-sm focus:border-black focus:outline-none focus:ring-2 focus:ring-black/10" %>
+<!--              </div>
+
+              <div>
+                <%#= label_tag nil, "Visibility", class: "block text-sm font-medium text-gray-700 mb-1" %>-->
+                <%#= select_tag "schedule_import[rows][#{index}][visibility]",
+                    options_for_select([["Public", "public"], ["Unlisted", "unlisted"]], row["visibility"]),
+                    class: "w-full rounded-xl border border-gray-300 bg-white px-3 py-2 text-gray-900 shadow-sm focus:border-black focus:outline-none focus:ring-2 focus:ring-black/10" %>
+<!--              </div>
+
+              <div>
+                <%#= label_tag nil, "YouTube channel", class: "block text-sm font-medium text-gray-700 mb-1" %>-->
+                <%#= select_tag "schedule_import[rows][#{index}][youtube_channel_id]",
+                    options_from_collection_for_select(@youtube_channels, :id, :display_name, row_channel_id),
+                    include_blank: "Select a connected YouTube channel",
+                    required: true,
+                    class: "w-full rounded-xl border border-gray-300 bg-white px-3 py-2 text-gray-900 shadow-sm focus:border-black focus:outline-none focus:ring-2 focus:ring-black/10" %>
+<!--              </div>
+
+              <div class="md:col-span-2">
+                <%#= label_tag nil, "Description", class: "block text-sm font-medium text-gray-700 mb-1" %>-->
+                <%#= text_area_tag "schedule_import[rows][#{index}][description]",
+                    row["description"],
+                    rows: 4,
+                    class: "w-full rounded-xl border border-gray-300 bg-white px-3 py-2 text-gray-900 shadow-sm focus:border-black focus:outline-none focus:ring-2 focus:ring-black/10" %>
+<!--              </div>
+
+              <div>
+                <%#= label_tag nil, "Location", class: "block text-sm font-medium text-gray-700 mb-1" %>-->
+                <%#= text_field_tag "schedule_import[rows][#{index}][location]",
+                    row["location"],
+                    class: "w-full rounded-xl border border-gray-300 bg-white px-3 py-2 text-gray-900 shadow-sm focus:border-black focus:outline-none focus:ring-2 focus:ring-black/10" %>
+<!--              </div>
+
+              <div>
+                <%#= label_tag nil, "Scheduled at", class: "block text-sm font-medium text-gray-700 mb-1" %>-->
+                <%#= text_field_tag "schedule_import[rows][#{index}][scheduled_at]",
+                    row["scheduled_at"],
+                    class: "w-full rounded-xl border border-gray-300 bg-white px-3 py-2 text-gray-900 shadow-sm focus:border-black focus:outline-none focus:ring-2 focus:ring-black/10",
+                    placeholder: "2026-03-20 10:00" %>
+<!--              </div>
+
+              <div class="md:col-span-2">
+                <%#= label_tag nil, "Notes", class: "block text-sm font-medium text-gray-700 mb-1" %>-->
+                <%#= text_area_tag "schedule_import[rows][#{index}][notes]",
+                    row["notes"],
+                    rows: 2,
+                    class: "w-full rounded-xl border border-gray-300 bg-white px-3 py-2 text-gray-900 shadow-sm focus:border-black focus:outline-none focus:ring-2 focus:ring-black/10" %>
+<!--              </div>
+            </div>
+
+            <details class="mt-5 rounded-xl border border-gray-200 bg-gray-50 px-4 py-3">
+              <summary class="cursor-pointer text-sm font-medium text-gray-700">
+                Show raw parser output
+              </summary>
+              <pre class="mt-3 overflow-x-auto text-xs leading-6 text-gray-700"><%#= JSON.pretty_generate(raw_row) %></pre>
+            </details>
+          </div>
+        </div>
+      <%# end %>-->
+<!--    </div>
+
+    <div class="sticky bottom-4 mt-8 flex justify-end">
+      <div class="rounded-2xl border border-gray-200 bg-white p-4 shadow-lg">
+        <%#= submit_tag "Create Streams", class: "rounded-xl bg-black px-5 py-3 text-sm font-semibold text-white shadow-sm hover:bg-gray-800" %>-->
+<!--      </div>
+    </div>
+  <%# end %>-->
+<!--</div>
+-->
 <% rows = Array(@cleaned_rows) %>
 <% raw_rows = Array(@raw_rows) %>
 
@@ -99,6 +253,22 @@
                     include_blank: "Select a connected YouTube channel",
                     required: true,
                     class: "w-full rounded-xl border border-gray-300 bg-white px-3 py-2 text-gray-900 shadow-sm focus:border-black focus:outline-none focus:ring-2 focus:ring-black/10" %>
+              </div>
+
+              <div>
+                <%= label_tag nil, "Venue type", class: "block text-sm font-medium text-gray-700 mb-1" %>
+                <%= select_tag "schedule_import[rows][#{index}][venue_type]",
+                    options_for_select([["Virtual", "virtual"], ["Physical", "physical"], ["Hybrid", "hybrid"]], row["venue_type"].presence),
+                    include_blank: "Select venue type",
+                    class: "w-full rounded-xl border border-gray-300 bg-white px-3 py-2 text-gray-900 shadow-sm focus:border-black focus:outline-none focus:ring-2 focus:ring-black/10" %>
+              </div>
+
+              <div>
+                <%= label_tag nil, "Venue name / Room", class: "block text-sm font-medium text-gray-700 mb-1" %>
+                <%= text_field_tag "schedule_import[rows][#{index}][venue_name]",
+                    row["venue_name"],
+                    class: "w-full rounded-xl border border-gray-300 bg-white px-3 py-2 text-gray-900 shadow-sm focus:border-black focus:outline-none focus:ring-2 focus:ring-black/10",
+                    placeholder: "Building name or room name" %>
               </div>
 
               <div class="md:col-span-2">

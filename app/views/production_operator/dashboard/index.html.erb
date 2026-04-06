@@ -1,4 +1,4 @@
-<div class="bg-white rounded-lg shadow p-4">
+<!--<div class="bg-white rounded-lg shadow p-4">
   <div class="mb-4">
     <h1 class="text-2xl font-bold text-gray-900">Production Schedule</h1>
     <p class="text-sm text-gray-500">
@@ -6,8 +6,8 @@
     </p>
   </div>
 
-  <% if @streams.present? %>
-    <div class="overflow-x-auto">
+  <%# if @streams.present? %>-->
+<!--    <div class="overflow-x-auto">
       <table class="min-w-full divide-y divide-gray-200">
         <thead class="bg-gray-50">
           <tr>
@@ -23,23 +23,23 @@
         </thead>
 
         <tbody class="bg-white divide-y divide-gray-200">
-          <% @streams.each do |stream| %>
-            <tr>
+          <%# @streams.each do |stream| %>-->
+<!--            <tr>
               <td class="px-4 py-3 text-sm font-medium text-gray-900">
-                <%= stream.title %>
-              </td>
+                <%#= stream.title %>-->
+<!--              </td>
 
               <td class="px-4 py-3 text-sm text-gray-700">
-                <%= stream.youtube_channel&.name || "-" %>
-              </td>
+                <%#= stream.youtube_channel&.name || "-" %>-->
+<!--              </td>
 
               <td class="px-4 py-3 text-sm text-gray-700">
-                <%= stream.scheduled_at ? l(stream.scheduled_at, format: :long) : "-" %>
-              </td>
+                <%#= stream.scheduled_at ? l(stream.scheduled_at, format: :long) : "-" %>-->
+<!--              </td>
 
               <td class="px-4 py-3 text-sm">
-                <% badge_class =
-                  case stream.status
+                <%# badge_class =-->
+<!--                  case stream.status
                   when "live" then "bg-red-100 text-red-700"
                   when "scheduled" then "bg-blue-100 text-blue-700"
                   when "ended" then "bg-gray-100 text-gray-700"
@@ -48,49 +48,227 @@
                   end
                 %>
 
-                <span class="inline-flex px-2 py-1 text-xs font-semibold rounded <%= badge_class %>">
-                  <%= stream.status.to_s.upcase %>
-                </span>
+                <span class="inline-flex px-2 py-1 text-xs font-semibold rounded <%#= badge_class %>">
+                  <%#= stream.status.to_s.upcase %>-->
+<!--                </span>
               </td>
 
               <td class="px-4 py-3 text-sm text-gray-700">
-                <%= stream.visibility.to_s.titleize %>
-              </td>
+                <%#= stream.visibility.to_s.titleize %>-->
+<!--              </td>
 
               <td class="px-4 py-3 text-sm text-gray-700 max-w-md">
                 <div class="truncate">
-                  <%= stream.description.presence || "-" %>
-                </div>
+                  <%#= stream.description.presence || "-" %>-->
+<!--                </div>
               </td>
 
               <td class="px-4 py-3 text-sm text-gray-700 max-w-md">
-                <% if stream.youtube_ingestion_address.present? %>
-                  <div class="flex items-center gap-2">
-                    <span class="truncate max-w-[260px]"><%= stream.youtube_ingestion_address %></span>
+                <%# if stream.youtube_ingestion_address.present? %>-->
+<!--                  <div class="flex items-center gap-2">
+                    <span class="truncate max-w-[260px]"><%#= stream.youtube_ingestion_address %></span>
                     <button
                       type="button"
                       class="text-xs bg-gray-200 hover:bg-gray-300 px-2 py-1 rounded"
-                      onclick="navigator.clipboard.writeText('<%= j(stream.youtube_ingestion_address) %>')"
+                      onclick="navigator.clipboard.writeText('<%#= j(stream.youtube_ingestion_address) %>')"
                     >
                       Copy
                     </button>
                   </div>
-                <% else %>
-                  -
-                <% end %>
-              </td>
+                <%# else %>-->
+<!--                  --->
+                <%# end %>
+<!--              </td>
 
               <td class="px-4 py-3 text-sm">
-                <%= link_to "View",
-                    production_operator_stream_path(stream),
+                <%#= link_to "View",-->
+<!--                    production_operator_stream_path(stream),
                     class: "text-indigo-600 hover:text-indigo-800 font-medium" %>
               </td>
             </tr>
-          <% end %>
-        </tbody>
+          <%# end %>-->
+<!--        </tbody>
       </table>
     </div>
-  <% else %>
-    <p class="text-sm text-gray-500">No streams found.</p>
-  <% end %>
+  <%# else %>-->
+<!--    <p class="text-sm text-gray-500">No streams found.</p>-->
+  <%# end %>
+<!--</div>
+-->
+<div class="min-h-screen bg-slate-100 px-4 py-8 sm:px-6 lg:px-8">
+  <div class="mx-auto max-w-[1700px]">
+    <div class="mb-8 rounded-3xl border border-slate-200 bg-white p-6 shadow-sm">
+      <div class="flex flex-col gap-4 lg:flex-row lg:items-end lg:justify-between">
+        <div>
+          <h1 class="text-3xl font-semibold tracking-tight text-slate-900">
+            Production Schedule
+          </h1>
+          <p class="mt-2 max-w-3xl text-sm leading-6 text-slate-600">
+            Full schedule view for the production team.
+          </p>
+        </div>
+      </div>
+    </div>
+
+    <% if @streams.present? %>
+      <div class="overflow-hidden rounded-3xl border border-slate-200 bg-white shadow-sm">
+        <div class="border-b border-slate-200 px-6 py-5">
+          <h2 class="text-lg font-semibold text-slate-900">Streams</h2>
+          <p class="mt-1 text-sm text-slate-600">
+            Public and source streams, including stream keys and ingestion URLs.
+          </p>
+        </div>
+
+        <div class="overflow-x-auto">
+          <table class="min-w-[1600px] divide-y divide-slate-200">
+            <thead class="bg-slate-50">
+              <tr>
+                <th class="px-6 py-4 text-left text-xs font-semibold uppercase tracking-wide text-slate-500">Title</th>
+                <th class="px-6 py-4 text-left text-xs font-semibold uppercase tracking-wide text-slate-500">Kind</th>
+                <th class="px-6 py-4 text-left text-xs font-semibold uppercase tracking-wide text-slate-500">Channel</th>
+                <th class="px-6 py-4 text-left text-xs font-semibold uppercase tracking-wide text-slate-500">Scheduled At</th>
+                <th class="px-6 py-4 text-left text-xs font-semibold uppercase tracking-wide text-slate-500">Status</th>
+                <th class="px-6 py-4 text-left text-xs font-semibold uppercase tracking-wide text-slate-500">Visibility</th>
+                <th class="px-6 py-4 text-left text-xs font-semibold uppercase tracking-wide text-slate-500">Description</th>
+                <th class="px-6 py-4 text-left text-xs font-semibold uppercase tracking-wide text-slate-500">Stream Key</th>
+                <th class="px-6 py-4 text-left text-xs font-semibold uppercase tracking-wide text-slate-500">Ingestion URL</th>
+                <th class="px-6 py-4 text-left text-xs font-semibold uppercase tracking-wide text-slate-500">Actions</th>
+              </tr>
+            </thead>
+
+            <tbody class="divide-y divide-slate-100 bg-white">
+              <% @streams.each do |stream| %>
+                <% stream_key = stream.youtube_stream_key.to_s.squish %>
+                <% ingestion_url = stream.youtube_ingestion_address.to_s.squish %>
+
+                <tr class="align-top transition hover:bg-slate-50/80">
+                  <td class="px-6 py-5">
+                    <div class="max-w-[320px]">
+                      <p class="font-medium text-slate-900">
+                        <%= stream.title %>
+                      </p>
+
+                      <div class="mt-2 flex flex-wrap gap-2">
+                        <% if stream.source_stream_kind? %>
+                          <span class="inline-flex items-center rounded-full bg-amber-100 px-2.5 py-1 text-xs font-medium text-amber-700">
+                            Source
+                          </span>
+                        <% else %>
+                          <span class="inline-flex items-center rounded-full bg-slate-100 px-2.5 py-1 text-xs font-medium text-slate-700">
+                            Public
+                          </span>
+                        <% end %>
+
+                        <% if stream.public_stream_kind? && stream.source_stream.present? %>
+                          <span class="inline-flex items-center rounded-full bg-emerald-50 px-2.5 py-1 text-xs font-medium text-emerald-700">
+                            Has source stream
+                          </span>
+                        <% end %>
+                      </div>
+                    </div>
+                  </td>
+
+                  <td class="px-6 py-5 text-sm text-slate-700">
+                    <% if stream.source_stream_kind? %>
+                      <span class="inline-flex rounded-full bg-amber-100 px-3 py-1 text-xs font-medium text-amber-700">
+                        Source
+                      </span>
+                    <% else %>
+                      <span class="inline-flex rounded-full bg-slate-100 px-3 py-1 text-xs font-medium text-slate-700">
+                        Public
+                      </span>
+                    <% end %>
+                  </td>
+
+                  <td class="px-6 py-5 text-sm text-slate-700">
+                    <div class="max-w-[220px]">
+                      <%= stream.youtube_channel&.name || "-" %>
+                    </div>
+                  </td>
+
+                  <td class="whitespace-nowrap px-6 py-5 text-sm text-slate-700">
+                    <%= stream.scheduled_at ? l(stream.scheduled_at, format: :long) : "-" %>
+                  </td>
+
+                  <td class="px-6 py-5 text-sm">
+                    <% badge_class =
+                      case stream.status
+                      when "live" then "bg-red-100 text-red-700"
+                      when "scheduled" then "bg-blue-100 text-blue-700"
+                      when "ended" then "bg-gray-100 text-gray-700"
+                      when "cancelled" then "bg-yellow-100 text-yellow-700"
+                      else "bg-gray-100 text-gray-700"
+                      end
+                    %>
+
+                    <span class="inline-flex px-2.5 py-1 text-xs font-semibold rounded-full <%= badge_class %>">
+                      <%= stream.status.to_s.upcase %>
+                    </span>
+                  </td>
+
+                  <td class="px-6 py-5 text-sm text-slate-700">
+                    <%= stream.visibility.to_s.titleize %>
+                  </td>
+
+                  <td class="px-6 py-5 text-sm text-slate-700">
+                    <div class="max-w-[420px] break-words leading-6">
+                      <%= stream.description.presence || "-" %>
+                    </div>
+                  </td>
+
+                  <td class="px-6 py-5 text-sm text-slate-700">
+                    <% if stream_key.present? %>
+                      <div class="flex items-center gap-2">
+                        <span class="block max-w-[260px] overflow-hidden whitespace-nowrap text-ellipsis font-mono text-xs leading-5 text-slate-700">
+                          <%= stream_key %>
+                        </span>
+                        <button
+                          type="button"
+                          class="shrink-0 rounded-lg border border-slate-200 bg-white px-2 py-1 text-xs font-medium text-slate-700 transition hover:bg-slate-50"
+                          onclick="navigator.clipboard.writeText('<%= j(stream_key) %>')"
+                        >
+                          Copy
+                        </button>
+                      </div>
+                    <% else %>
+                      -
+                    <% end %>
+                  </td>
+
+                  <td class="px-6 py-5 text-sm text-slate-700">
+                    <% if ingestion_url.present? %>
+                      <div class="flex items-center gap-2">
+                        <span class="block max-w-[320px] overflow-hidden whitespace-nowrap text-ellipsis font-mono text-xs leading-5 text-slate-700">
+                          <%= ingestion_url %>
+                        </span>
+                        <button
+                          type="button"
+                          class="shrink-0 rounded-lg border border-slate-200 bg-white px-2 py-1 text-xs font-medium text-slate-700 transition hover:bg-slate-50"
+                          onclick="navigator.clipboard.writeText('<%= j(ingestion_url) %>')"
+                        >
+                          Copy
+                        </button>
+                      </div>
+                    <% else %>
+                      -
+                    <% end %>
+                  </td>
+
+                  <td class="px-6 py-5 text-sm whitespace-nowrap">
+                    <%= link_to "View",
+                        production_operator_stream_path(stream),
+                        class: "inline-flex items-center justify-center rounded-lg border border-slate-200 bg-white px-3 py-2 font-medium text-slate-700 transition hover:bg-slate-50 hover:text-slate-900" %>
+                  </td>
+                </tr>
+              <% end %>
+            </tbody>
+          </table>
+        </div>
+      </div>
+    <% else %>
+      <div class="rounded-3xl border border-slate-200 bg-white p-8 text-sm text-slate-600 shadow-sm">
+        No streams found.
+      </div>
+    <% end %>
+  </div>
 </div>
